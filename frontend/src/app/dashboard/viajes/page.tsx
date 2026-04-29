@@ -56,6 +56,16 @@ function StatusBadge({ status }: { status: string }) {
   return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 w-max"><AlertTriangle size={12}/> Incidente</span>;
 }
 
+interface TripFormData {
+  id?: string;
+  cliente: string;
+  driver: string;
+  origen: string;
+  destino: string;
+  estado?: string;
+  fecha?: string;
+}
+
 function TripModal({ onClose, onSave, tripToEdit }: any) {
   const router = useRouter();
   const { isLoaded } = useJsApiLoader({
@@ -64,7 +74,7 @@ function TripModal({ onClose, onSave, tripToEdit }: any) {
     libraries
   });
 
-  const [form, setForm] = useState(tripToEdit || { cliente: '', driver: '', origen: '', destino: '' });
+  const [form, setForm] = useState<TripFormData>(tripToEdit || { cliente: '', driver: '', origen: '', destino: '' });
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
