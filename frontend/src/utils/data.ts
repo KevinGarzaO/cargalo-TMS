@@ -209,3 +209,8 @@ export const MOCK = {
     { id: "D-104", nombre: "Carlos Ortiz", email: "c.ortiz@cargalo.mx", tel: "22 4140 0091", ciudad: "Puebla", zona: "Centro", estado: "suspended", desde: "2024-02-10", rating: 3.2, envios: 15, gasto: 5000, entregas_hoy: 0 }
   ]
 };
+
+export const VIAJES_MOCK = [
+  { id: "V-1001", cliente: "Mercado El Sol S.A. de C.V.", driver: "Roberto Gómez", origen: "Av. Reforma 123, CDMX", destino: "Toluca, EdoMex", estado: "scheduled" },
+  { id: "V-1002", cliente: "Boutique Camelia S.A.", driver: "Alejandro Ruiz", origen: "Guadalajara, Jal", destino: "Zapopan, Jal", estado: "in_transit" }
+];
