@@ -203,10 +203,10 @@ export const MOCK = {
     }
   ],
   DRIVERS: [
-    { id: "D-101", nombre: "Roberto Gómez", email: "roberto.gomez@cargalo.mx", tel: "55 1234 5678", ciudad: "CDMX", zona: "Centro", estado: "active", desde: "2023-01-15", rating: 4.8, envios: 124, gasto: 45000, entregas_hoy: 3 },
-    { id: "D-102", nombre: "Alejandro Ruiz", email: "a.ruiz@cargalo.mx", tel: "33 9876 5432", ciudad: "Guadalajara", zona: "Zapopan", estado: "active", desde: "2023-03-20", rating: 4.9, envios: 98, gasto: 32000, entregas_hoy: 2 },
-    { id: "D-103", nombre: "Mariana López", email: "m.lopez@cargalo.mx", tel: "81 2233 4455", ciudad: "Monterrey", zona: "Santa Catarina", estado: "inactive", desde: "2022-11-05", rating: 4.5, envios: 210, gasto: 85000, entregas_hoy: 0 },
-    { id: "D-104", nombre: "Carlos Ortiz", email: "c.ortiz@cargalo.mx", tel: "22 4140 0091", ciudad: "Puebla", zona: "Centro", estado: "suspended", desde: "2024-02-10", rating: 3.2, envios: 15, gasto: 5000, entregas_hoy: 0 }
+    { id: "D-101", nombre: "Roberto Gómez", email: "roberto.gomez@cargalo.mx", tel: "55 1234 5678", ciudad: "CDMX", zona: "Centro", estado: "active", desde: "2023-01-15", rating: 4.8, envios: 124, gasto: 45000, entregas_hoy: 3, vehiculo: "Kenworth T680" },
+    { id: "D-102", nombre: "Alejandro Ruiz", email: "a.ruiz@cargalo.mx", tel: "33 9876 5432", ciudad: "Guadalajara", zona: "Zapopan", estado: "active", desde: "2023-03-20", rating: 4.9, envios: 98, gasto: 32000, entregas_hoy: 2, vehiculo: "Freightliner Cascadia" },
+    { id: "D-103", nombre: "Mariana López", email: "m.lopez@cargalo.mx", tel: "81 2233 4455", ciudad: "Monterrey", zona: "Santa Catarina", estado: "inactive", desde: "2022-11-05", rating: 4.5, envios: 210, gasto: 85000, entregas_hoy: 0, vehiculo: "Isuzu Forward" },
+    { id: "D-104", nombre: "Carlos Ortiz", email: "c.ortiz@cargalo.mx", tel: "22 4140 0091", ciudad: "Puebla", zona: "Centro", estado: "suspended", desde: "2024-02-10", rating: 3.2, envios: 15, gasto: 5000, entregas_hoy: 0, vehiculo: "Volkswagen Delivery" }
   ]
 };
 
