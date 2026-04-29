@@ -18,6 +18,22 @@ function StatusPill({ s }: { s: string }) {
   );
 }
 
+interface PointFormData {
+  id?: string;
+  nombre: string;
+  direccion: string;
+  gps: string;
+  contacto: string;
+  tel: string;
+  client_id: string;
+  reception_days: number[];
+  reception_from: string;
+  reception_to: string;
+  service_time_min: number;
+  acceso: string;
+  status: string;
+}
+
 function PointEditor({ initialData, onClose, onSave }: { initialData?: any, onClose: () => void, onSave: (p: any) => void }) {
   const isEdit = !!initialData?.id;
   const { isLoaded } = useJsApiLoader({
@@ -26,7 +42,7 @@ function PointEditor({ initialData, onClose, onSave }: { initialData?: any, onCl
     libraries
   });
 
-  const [formData, setFormData] = useState(initialData || {
+  const [formData, setFormData] = useState<PointFormData>(initialData || {
     nombre: '', direccion: '', gps: '', contacto: '', tel: '', 
     client_id: '', reception_days: [1,2,3,4,5], reception_from: '08:00', reception_to: '18:00', 
     service_time_min: 30, acceso: '', status: 'active'
