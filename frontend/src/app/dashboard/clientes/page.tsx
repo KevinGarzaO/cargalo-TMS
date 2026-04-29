@@ -33,10 +33,32 @@ function StatusPill({ s }: { s: string }) {
   );
 }
 
+interface ClientFormData {
+  id?: string;
+  tipo: string;
+  name: string;
+  rfc: string;
+  repName: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  zone: string;
+  estado: string;
+  fiscalStreet: string;
+  fiscalColonia: string;
+  fiscalCity: string;
+  fiscalState: string;
+  fiscalZip: string;
+  fiscalRegime: string;
+  cfdiUse: string;
+  metodoPago: string;
+  puntosEntrega: any[];
+}
+
 function ClientEditor({ initialData, defaultTipo, onClose, onSave }: { initialData?: any, defaultTipo?: string, onClose: () => void, onSave: (v:any)=>void }) {
   const isEdit = !!initialData?.id;
   const [activeSection, setActiveSection] = useState(0);
-  const [formData, setFormData] = useState(initialData || {
+  const [formData, setFormData] = useState<ClientFormData>(initialData || {
     tipo: defaultTipo || 'B2B',
     name: '', rfc: '', 
     repName: '',
