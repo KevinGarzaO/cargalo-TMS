@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, AlertTriangle, User, Calendar, MapPin, CheckCircle2, Clock, MessageSquare, Image as ImageIcon, ShieldAlert } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -94,6 +94,14 @@ function IncidenteDetail({ incidente, onClose, onResolve }: { incidente: any, on
 }
 
 export default function Incidentes() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <IncidentesContent />
+    </Suspense>
+  );
+}
+
+function IncidentesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');

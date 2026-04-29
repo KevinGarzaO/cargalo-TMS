@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, Suspense } from 'react';
 import { Download, Plus, Search, Filter, MapPin, Eye, Edit, MoreHorizontal, Mail, Phone, MessageSquare, UserMinus, UserPlus, FileText, Minus, User, Building, Clock, Map, Trash2, Maximize2 } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -11,7 +11,7 @@ import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB5aG1ur9_hOUAGmNwo9_TxUtpeFXMsiZM';
 const placesLibrary: ('places' | 'geometry')[] = ['places', 'geometry'];
 
-const initials = (name: string) => name.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
+const initials = (name: string) => (name || '').split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
 const fmtDate = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 const fmtDateLong = (s: string) => {
   const d = new Date(s);
@@ -449,7 +449,7 @@ function ClienteDetail({ cliente, isCreate = false, defaultTipo, onClose, onSave
         <div className="detail-avatar">
           {cData.tipo === 'B2C' ? (
             <div className="avatar-img flex items-center justify-center text-white font-black text-5xl drop-shadow-md">
-              {initials(cData.name)}
+              {initials(cData.name || '')}
             </div>
           ) : (
             <div className="avatar-img flex items-center justify-center text-white drop-shadow-md">
@@ -458,7 +458,7 @@ function ClienteDetail({ cliente, isCreate = false, defaultTipo, onClose, onSave
           )}
         </div>
         <div className="detail-meta">
-          <h1>{cData.name}</h1>
+          <h1>{cData.name || 'Sin nombre'}</h1>
           <div className="detail-tags">
             <span className={`detail-validated ${cData.estado !== 'active' ? 'suspended' : ''}`}>{cData.estado === 'active' ? 'Activo' : 'Inactivo'}</span>
             <span className={`detail-validated ${cData.tipo === 'B2C' ? 'bg-[#9C27B0]' : 'bg-[#1A8FBF]'}`}>
@@ -615,6 +615,14 @@ function ClienteDetail({ cliente, isCreate = false, defaultTipo, onClose, onSave
 }
 
 export default function Clientes() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <ClientesContent />
+    </Suspense>
+  );
+}
+
+function ClientesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');

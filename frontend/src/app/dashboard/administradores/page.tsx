@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Download, Plus, Search, Filter, Edit, MoreHorizontal, User, Shield, LifeBuoy, X, Mail, Settings, Calendar, Key, Phone, Map, Eye } from 'lucide-react';
@@ -12,7 +12,7 @@ const ADMINS_MOCK = [
   { id: 'A004', nombre: 'Juan Perez', email: 'juan@cargalo.mx', tel: '81 5566 7788', rol: 'Viewer', estado: 'suspended', fecha: '2023-12-01T11:15:00Z' },
 ];
 
-const initials = (name: string) => name.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
+const initials = (name: string) => (name || '').split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
 const fmtDate = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 
 function StatusPill({ s }: { s: string }) {
@@ -202,9 +202,9 @@ function AdminDetail({ admin, isCreate = false, onClose, onSave }: { admin?: any
               <div className="dcard-header">Información Personal</div>
               <div className="dcard-body">
                 <div className="kv-list">
-                  <div className="row"><span className="k">Nombre Completo:</span><span className="v font-bold text-ink-900">{admin.nombre}</span></div>
-                  <div className="row"><span className="k">Teléfono:</span><span className="v text-ink-900">{admin.tel || 'No registrado'}</span></div>
-                  <div className="row"><span className="k">Correo Electrónico:</span><span className="v text-ink-900">{admin.email}</span></div>
+                  <div className="row"><span className="k">Nombre Completo:</span><span className="v font-bold text-ink-900">{aData.nombre || 'No disponible'}</span></div>
+                  <div className="row"><span className="k">Teléfono:</span><span className="v text-ink-900">{aData.tel || 'No registrado'}</span></div>
+                  <div className="row"><span className="k">Correo Electrónico:</span><span className="v text-ink-900">{aData.email || 'No disponible'}</span></div>
                 </div>
               </div>
             </div>
@@ -212,12 +212,12 @@ function AdminDetail({ admin, isCreate = false, onClose, onSave }: { admin?: any
               <div className="dcard-header" style={{ background: '#4CB89C' }}>Acceso y Sistema</div>
               <div className="dcard-body">
                 <div className="kv-list">
-                  <div className="row"><span className="k">Rol en Sistema:</span><span className="v"><RolePill role={admin.rol} /></span></div>
+                  <div className="row"><span className="k">Rol en Sistema:</span><span className="v"><RolePill role={aData.rol} /></span></div>
                   <div className="row">
                     <span className="k">Estado de Cuenta:</span>
-                    <span className="v"><StatusPill s={admin.estado}/></span>
+                    <span className="v"><StatusPill s={aData.estado}/></span>
                   </div>
-                  <div className="row"><span className="k">Fecha de Registro:</span><span className="v text-ink-900">{fmtDate(admin.fecha)}</span></div>
+                  <div className="row"><span className="k">Fecha de Registro:</span><span className="v text-ink-900">{aData.fecha ? fmtDate(aData.fecha) : '--'}</span></div>
                 </div>
               </div>
             </div>
@@ -229,6 +229,14 @@ function AdminDetail({ admin, isCreate = false, onClose, onSave }: { admin?: any
 }
 
 export default function Administradores() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <AdministradoresContent />
+    </Suspense>
+  );
+}
+
+function AdministradoresContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const actionParam = searchParams.get('action');

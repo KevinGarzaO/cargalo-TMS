@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, Package, User, Calendar, MapPin, CheckCircle2, Clock, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -113,6 +113,14 @@ function OrderDetail({ order, onClose }: { order: any, onClose: () => void }) {
 }
 
 export default function Ordenes() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <OrdenesContent />
+    </Suspense>
+  );
+}
+
+function OrdenesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');

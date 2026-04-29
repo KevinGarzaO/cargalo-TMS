@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, MapPin, Phone, User, Clock, Info, ExternalLink } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -342,6 +342,14 @@ function PointDetail({ point, isCreate = false, onClose, onSave }: { point?: any
 }
 
 export default function PuntosEntrega() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <PuntosEntregaContent />
+    </Suspense>
+  );
+}
+
+function PuntosEntregaContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');

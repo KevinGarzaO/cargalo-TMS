@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, MapPin, Eye, Edit, MoreHorizontal, Mail, Phone, User, Shield, Calendar, CreditCard, Truck, Star, Briefcase } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 // --- HELPERS ---
-const initials = (name: string) => name.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
+const initials = (name: string) => (name || '').split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
 const fmtMXN = (n: number) => "$" + n.toLocaleString('es-MX');
 const fmtDate = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 const fmtDateLong = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -352,6 +352,14 @@ function DriverDetail({ driver, onClose }: { driver: any, onClose: () => void })
 // --- MAIN PAGE ---
 
 export default function Drivers() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <DriversContent />
+    </Suspense>
+  );
+}
+
+function DriversContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, Car, Truck, Bike, MapPin, Settings, ExternalLink } from 'lucide-react';
 import { MOCK } from '@/utils/data';
@@ -306,30 +306,30 @@ function VehicleDetail({ vehicle, isCreate = false, onClose, onSave }: { vehicle
                 <button className="ds-imgnav next" onClick={() => setVehImgIdx((vehImgIdx + 1) % vehImgs.length)}>›</button>
               </div>
               <div className="kv-list">
-                <div className="row"><span className="k">Tipo de vehículo:</span><span className="v">{vehicle.tipo}</span></div>
-                <div className="row"><span className="k">Modelo:</span><span className="v">{vehicle.modelo}</span></div>
-                <div className="row"><span className="k">Año:</span><span className="v">{vehicle.año}</span></div>
-                <div className="row"><span className="k">Capacidad de Carga:</span><span className="v">{vehicle.peso}</span></div>
-                <div className="row"><span className="k">Volumen de Carga:</span><span className="v">{vehicle.volumen}</span></div>
-                <div className="row"><span className="k">Combustible:</span><span className="v">{vehicle.combustible}</span></div>
-                <div className="row"><span className="k">Rendimiento:</span><span className="v">{vehicle.rendimiento}</span></div>
-                <div className="row"><span className="k">Capacidad de Tanque:</span><span className="v">{vehicle.tanque}</span></div>
-                <div className="row"><span className="k">Kilometraje Actual:</span><span className="v">{vehicle.kilometraje}</span></div>
-                <div className="row"><span className="k">Placas:</span><span className="v" style={{fontFamily:'var(--font-mono)'}}>{vehicle.placa}</span></div>
+                <div className="row"><span className="k">Tipo de vehículo:</span><span className="v">{vData.tipo}</span></div>
+                <div className="row"><span className="k">Modelo:</span><span className="v">{vData.modelo}</span></div>
+                <div className="row"><span className="k">Año:</span><span className="v">{vData.año}</span></div>
+                <div className="row"><span className="k">Capacidad de Carga:</span><span className="v">{vData.peso}</span></div>
+                <div className="row"><span className="k">Volumen de Carga:</span><span className="v">{vData.volumen}</span></div>
+                <div className="row"><span className="k">Combustible:</span><span className="v">{vData.combustible}</span></div>
+                <div className="row"><span className="k">Rendimiento:</span><span className="v">{vData.rendimiento}</span></div>
+                <div className="row"><span className="k">Capacidad de Tanque:</span><span className="v">{vData.tanque}</span></div>
+                <div className="row"><span className="k">Kilometraje Actual:</span><span className="v">{vData.kilometraje}</span></div>
+                <div className="row"><span className="k">Placas:</span><span className="v" style={{fontFamily:'var(--font-mono)'}}>{vData.placa}</span></div>
                 <div className="row">
                   <span className="k">Estado:</span>
-                  <span className="v">{vehicle.estado === 'disponible' ? 'Disponible' : vehicle.estado === 'en_viaje' ? 'En viaje' : vehicle.estado === 'mantenimiento' ? 'Mantenimiento' : 'En taller'}</span>
+                  <span className="v">{vData.estado === 'disponible' ? 'Disponible' : vData.estado === 'en_viaje' ? 'En viaje' : vData.estado === 'mantenimiento' ? 'Mantenimiento' : 'En taller'}</span>
                 </div>
                 <div className="row">
                   <span className="k">Conductor Asignado:</span>
                   <span className="v">
-                    {vehicle.driver !== "Sin asignar" ? (
-                      <Link href={`/dashboard/drivers?driverName=${encodeURIComponent(vehicle.driver)}`} 
+                    {vData.driver !== "Sin asignar" ? (
+                      <Link href={`/dashboard/drivers?driverName=${encodeURIComponent(vData.driver)}`} 
                             className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm">
-                        {vehicle.driver} <ExternalLink size={12} />
+                        {vData.driver} <ExternalLink size={12} />
                       </Link>
                     ) : (
-                      <span className="text-ink-400 font-medium italic">{vehicle.driver}</span>
+                      <span className="text-ink-400 font-medium italic">{vData.driver}</span>
                     )}
                   </span>
                 </div>
@@ -393,6 +393,14 @@ function VehicleDetail({ vehicle, isCreate = false, onClose, onSave }: { vehicle
 }
 
 export default function Vehiculos() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <VehiculosContent />
+    </Suspense>
+  );
+}
+
+function VehiculosContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');

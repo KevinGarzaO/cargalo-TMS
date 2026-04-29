@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { Bell, Info, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
 const NOTIF_MOCK = [
@@ -11,6 +11,14 @@ const NOTIF_MOCK = [
 ];
 
 export default function Notificaciones() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+      <NotificacionesContent />
+    </Suspense>
+  );
+}
+
+function NotificacionesContent() {
   return (
     <>
       <div className="mb-8">
