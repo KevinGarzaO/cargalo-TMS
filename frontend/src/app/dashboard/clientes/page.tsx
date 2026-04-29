@@ -71,7 +71,7 @@ function ClientEditor({ initialData, defaultTipo, onClose, onSave }: { initialDa
   const [activeDoc, setActiveDoc] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [previews, setPreviews] = useState<Record<string, { url: string, type: string }>>({});
+  const [previews, setPreviews] = useState<Record<string, { url: string, type: string } | undefined>>({});
 
   const docList = formData.tipo === 'B2B' 
     ? ['Foto Representante', 'INE Rep. Frontal', 'INE Rep. Trasera', 'Acta Constitutiva', 'Poder Notarial', 'Constancia SAT', 'Contrato']
