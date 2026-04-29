@@ -1,0 +1,209 @@
+// Prisma schema for Cárgalo TMS - V1.0
+// Database: PostgreSQL (Railway)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. ORGANIZACIONES (Multi-tenant)
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  rfc       String?
+  status    String    @default("active") // active, inactive, suspended
+  plan      String    @default("pro")    // basic, pro, enterprise
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relaciones
+  users      User[]
+  clients    Client[]
+  vehicles   Vehicle[]
+  drivers    Driver[]
+  routes     Route[]
+}
+
+// 2. SEGURIDAD Y USUARIOS
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  password       String
+  name           String
+  role           Role         @default(OPERATOR)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  status         String       @default("active")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  OPERATOR
+  MONITOR
+  AUDITOR
+  CLIENT
+  DRIVER
+}
+
+// 3. CLIENTES (B2B / B2C)
+model Client {
+  id             String       @id @default(cuid())
+  type           ClientType   @default(B2B)
+  name           String       // Empresa o Persona Física
+  rfc            String?
+  status         String       @default("active")
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  // Datos de Contacto
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  zone           String?      // Zona Geográfica
+  
+  // Datos Representante (B2B)
+  repName        String?
+  repPhotoUrl    String?
+  repIneFrontUrl String?
+  repIneBackUrl  String?
+
+  // Datos Fiscales
+  fiscalStreet   String?
+  fiscalColonia  String?
+  fiscalCity     String?
+  fiscalState    String?
+  fiscalZip      String?
+  fiscalRegime   String?
+  cfdiUse        String?
+
+  // Documentos
+  actaConstitutivaUrl String?
+  poderNotarialUrl    String?
+  constanciaSatUrl    String?
+  contractUrl         String?
+  ineFrontUrl         String?
+  ineBackUrl          String?
+  photoUrl            String?
+
+  // Relaciones
+  deliveryPoints DeliveryPoint[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([organizationId])
+  @@index([type])
+}
+
+enum ClientType {
+  B2B
+  B2C
+}
+
+// 4. VEHÍCULOS
+model Vehicle {
+  id             String       @id @default(cuid())
+  placa          String       @unique
+  modelo         String?
+  brand          String?
+  year           Int?
+  type           String?      // Tracto, Camión, Van, etc.
+  peso           String?      // Capacidad de carga
+  volumen        String?      // Volumen de carga
+  combustible    String?
+  tanque         String?
+  rendimiento    String?
+  kilometraje    Int?         @default(0)
+  status         String       @default("disponible") // disponible, en_viaje, mantenimiento, taller
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  driverId       String?      @unique
+  driver         Driver?      @relation(fields: [driverId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+// 5. CONDUCTORES (DRIVERS)
+model Driver {
+  id             String       @id @default(cuid())
+  name           String
+  phone          String?
+  licenseNumber  String?
+  licenseExpiry  DateTime?
+  status         String       @default("active")
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  vehicle        Vehicle?
+  trips          Trip[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+// 6. PUNTOS DE ENTREGA
+model DeliveryPoint {
+  id             String   @id @default(cuid())
+  nombre         String
+  direccion      String
+  gps            String?
+  contacto       String?
+  tel            String?
+  status         String   @default("active")
+  
+  clientId       String
+  client         Client   @relation(fields: [clientId], references: [id])
+
+  // Horarios de Recepción
+  receptionDays   Int[]    // [1,2,3,4,5]
+  receptionFrom   String?  // "08:00"
+  receptionTo     String?  // "18:00"
+  serviceTimeMin  Int?     @default(30)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([clientId])
+}
+
+// 7. RUTAS Y VIAJES (Esquema Básico para Módulo 3/4)
+model Route {
+  id             String       @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  trips          Trip[]
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model Trip {
+  id        String   @id @default(cuid())
+  routeId   String
+  route     Route    @relation(fields: [routeId], references: [id])
+  driverId  String
+  driver    Driver   @relation(fields: [driverId], references: [id])
+  status    String   @default("pendiente") // pendiente, en_progreso, completado, cancelado
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([routeId])
+  @@index([driverId])
+}

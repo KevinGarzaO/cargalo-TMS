@@ -1,0 +1,1671 @@
+--- FILE: C:\Users\kevin\Documentos\cargalo TMS\TMS_Modelo_BD_MVP.docx ---
+TMS SaaS — Modelo de Base de Datos
+Documento de referencia — MVP v1.0 — 2025
+Stack: Next.js + TypeScript  |  Express.js (Railway)  |  PostgreSQL multi-tenant
+Resumen de tablas (15 en total)
+Grupo
+Tablas
+Descripcion
+Infraestructura multi-tenant
+2 tablas
+companies, users
+Catalogos base
+5 tablas
+drivers, driver_schedules, vehicles, clients, delivery_points
+Rutas
+2 tablas
+routes, route_stops
+Operacion
+5 tablas
+trips, trip_stops, trip_locations, stop_evidences, incidents
+Configuracion y auditoria
+3 tablas
+company_settings, audit_logs, custom_fields
+1. Infraestructura multi-tenant
+companies  [infraestructura]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK — identificador unico
+schema_name
+VARCHAR
+nombre del schema en PostgreSQL — unico por empresa
+name
+VARCHAR
+nombre de la empresa
+rfc
+VARCHAR
+RFC para facturacion
+plan
+ENUM
+starter / growth / pro / enterprise
+status
+ENUM
+active / suspended / cancelled
+trial_ends_at
+TIMESTAMP
+fecha de fin del periodo de prueba
+created_at
+TIMESTAMP
+fecha de registro en el sistema
+users  [infraestructura]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+company_id
+UUID
+FK → companies
+name
+VARCHAR
+nombre completo del usuario
+email
+VARCHAR
+correo electronico — unico por empresa
+password_hash
+VARCHAR
+contrasena encriptada
+role
+ENUM
+superadmin / admin / dispatcher / supervisor / conductor
+status
+ENUM
+active / inactive / invited
+last_login_at
+TIMESTAMP
+ultimo acceso al sistema
+created_at
+TIMESTAMP
+2. Catalogos base
+drivers  [catalogo]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+user_id
+UUID
+FK → users — cuenta para acceso a la PWA
+name
+VARCHAR
+nombre completo del conductor
+phone
+VARCHAR
+telefono de contacto
+photo_url
+VARCHAR
+URL de foto de perfil
+license_number
+VARCHAR
+numero de licencia de conducir
+license_type
+VARCHAR
+tipo de licencia
+license_expires_at
+DATE
+vencimiento de licencia — genera alerta automatica
+zone
+VARCHAR
+zona geografica asignada
+max_stops_per_day
+INTEGER
+limite de paradas por jornada
+status
+ENUM
+active / inactive / vacation / sick
+created_at
+TIMESTAMP
+driver_schedules  [catalogo]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+driver_id
+UUID
+FK → drivers
+work_days
+JSONB
+dias laborales: [1,2,3,4,5] — 1=lunes, 7=domingo
+shift_start
+TIME
+hora de inicio de jornada
+shift_end
+TIME
+hora de fin de jornada
+shift_type
+ENUM
+morning / afternoon / night / mixed
+unavailable_dates
+JSONB
+fechas bloqueadas: vacaciones, incapacidades, dias libres
+updated_at
+TIMESTAMP
+vehicles  [catalogo]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+plate
+VARCHAR
+placa del vehiculo
+type
+VARCHAR
+camioneta / camion / motocicleta / otro
+model
+VARCHAR
+marca y modelo
+max_weight_kg
+DECIMAL
+capacidad maxima de carga en kilogramos
+max_volume_m3
+DECIMAL
+capacidad maxima de carga en metros cubicos
+fuel_type
+ENUM
+gasolina / diesel / electrico / gas
+fuel_efficiency
+DECIMAL
+km por litro promedio
+tank_capacity_l
+DECIMAL
+capacidad del tanque en litros
+current_km
+INTEGER
+kilometraje actual — se actualiza despues de cada viaje
+status
+ENUM
+available / on_trip / maintenance / workshop
+created_at
+TIMESTAMP
+clients  [catalogo]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+name
+VARCHAR
+nombre de empresa o persona
+rfc
+VARCHAR
+RFC para facturacion
+contact_name
+VARCHAR
+contacto principal
+contact_phone
+VARCHAR
+telefono del contacto
+contact_email
+VARCHAR
+correo del contacto
+zone
+VARCHAR
+zona geografica
+status
+ENUM
+active / inactive
+created_at
+TIMESTAMP
+delivery_points  [catalogo]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+client_id
+UUID
+FK → clients — un cliente puede tener varios puntos
+name
+VARCHAR
+nombre identificador del punto de entrega
+address
+TEXT
+direccion completa
+lat
+DECIMAL
+latitud GPS
+lng
+DECIMAL
+longitud GPS
+contact_name
+VARCHAR
+quien recibe en este punto
+contact_phone
+VARCHAR
+telefono del receptor en este punto
+reception_days
+JSONB
+dias que recibe: [1,2,3,4,5]
+reception_from
+TIME
+hora inicio de ventana de recepcion
+reception_to
+TIME
+hora fin de ventana de recepcion
+service_time_min
+INTEGER
+minutos estimados de atencion en sitio
+special_instructions
+TEXT
+instrucciones de acceso, persona de contacto, observaciones
+status
+ENUM
+active / inactive
+3. Rutas
+routes  [rutas]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+name
+VARCHAR
+nombre de la ruta — ej: Zona Norte MTY
+description
+TEXT
+descripcion opcional
+zone
+VARCHAR
+zona geografica de la ruta
+estimated_duration_min
+INTEGER
+duracion total estimada en minutos
+status
+ENUM
+active / inactive
+created_by
+UUID
+FK → users (dispatcher que creo la ruta)
+created_at
+TIMESTAMP
+route_stops  [rutas]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+route_id
+UUID
+FK → routes
+delivery_point_id
+UUID
+FK → delivery_points
+sequence
+INTEGER
+orden en la ruta: 1, 2, 3...
+stop_type
+ENUM
+delivery / pickup / both
+estimated_arrival
+TIME
+hora estimada de llegada a esta parada
+notes
+TEXT
+instrucciones especificas para esta parada en la ruta
+4. Operacion — viajes
+trips  [operacion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+driver_id
+UUID
+FK → drivers
+vehicle_id
+UUID
+FK → vehicles
+route_id
+UUID
+FK → routes — nullable, si el viaje fue generado desde una ruta
+created_by
+UUID
+FK → users (dispatcher que creo el viaje)
+status
+ENUM
+scheduled / in_transit / completed / completed_with_incidents / cancelled
+scheduled_at
+TIMESTAMP
+fecha y hora programada de salida
+started_at
+TIMESTAMP
+fecha y hora de salida real
+completed_at
+TIMESTAMP
+fecha y hora de cierre real del viaje
+tracking_token
+VARCHAR
+token unico para el link publico de tracking del cliente
+total_weight_kg
+DECIMAL
+peso total calculado de todas las entregas del viaje
+fuel_level_start
+DECIMAL
+nivel de combustible en litros al inicio del viaje
+notes
+TEXT
+observaciones del dispatcher
+created_at
+TIMESTAMP
+trip_stops  [operacion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+trip_id
+UUID
+FK → trips
+delivery_point_id
+UUID
+FK → delivery_points
+sequence
+INTEGER
+orden de la parada en este viaje: 1, 2, 3...
+stop_type
+ENUM
+delivery / pickup / both
+status
+ENUM
+pending / on_site / completed / incident / skipped
+estimated_arrival
+TIMESTAMP
+ETA calculada para esta parada
+arrived_at
+TIMESTAMP
+hora real de llegada del conductor
+completed_at
+TIMESTAMP
+hora real de cierre de la parada
+notes
+TEXT
+observaciones del conductor en esta parada
+trip_locations  [operacion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+trip_id
+UUID
+FK → trips
+driver_id
+UUID
+FK → drivers
+lat
+DECIMAL
+latitud GPS del conductor
+lng
+DECIMAL
+longitud GPS del conductor
+speed_kmh
+DECIMAL
+velocidad del conductor en ese momento
+heading
+DECIMAL
+direccion en grados (0-360)
+recorded_at
+TIMESTAMP
+timestamp exacto del punto GPS
+stop_evidences  [operacion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+trip_stop_id
+UUID
+FK → trip_stops
+photo_url
+VARCHAR
+URL de la foto de entrega
+signature_url
+VARCHAR
+URL de la imagen de firma del receptor
+receiver_name
+VARCHAR
+nombre de quien recibio la mercancia
+delivery_code
+VARCHAR
+codigo unico generado por el sistema para verificacion
+lat
+DECIMAL
+GPS del conductor al momento de la entrega
+lng
+DECIMAL
+GPS del conductor al momento de la entrega
+notes
+TEXT
+observaciones adicionales del conductor
+created_at
+TIMESTAMP
+timestamp exacto de la entrega — inmutable
+incidents  [operacion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+trip_stop_id
+UUID
+FK → trip_stops
+reported_by
+UUID
+FK → users (conductor que reporto)
+resolved_by
+UUID
+FK → users (dispatcher que resolvio) — nullable
+type
+ENUM
+client_absent / wrong_address / access_denied / damaged / rejected / wait_time / vehicle_failure / other
+description
+TEXT
+descripcion del conductor con sus propias palabras
+photo_url
+VARCHAR
+URL de foto del incidente
+lat
+DECIMAL
+GPS al momento de reportar
+lng
+DECIMAL
+GPS al momento de reportar
+resolution
+ENUM
+retry_same_day / retry_next_day / return_to_origin / resolved_on_site
+resolution_notes
+TEXT
+decision y notas del dispatcher
+reported_at
+TIMESTAMP
+cuando se reporto el incidente
+resolved_at
+TIMESTAMP
+cuando se resolvio — nullable
+5. Configuracion y auditoria
+company_settings  [configuracion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+company_id
+UUID
+FK → companies — una configuracion por empresa
+require_photo
+BOOLEAN
+foto obligatoria al completar una parada
+require_signature
+BOOLEAN
+firma obligatoria al completar una parada
+require_delivery_code
+BOOLEAN
+codigo de verificacion obligatorio
+max_stops_per_trip
+INTEGER
+limite de paradas por viaje
+max_speed_kmh
+INTEGER
+velocidad maxima permitida para conductores
+custom_labels
+JSONB
+terminologia propia: {"driver": "Repartidor", "trip": "Ruta del dia"}
+notify_client_on_eta
+BOOLEAN
+avisar al cliente por WhatsApp cuando el conductor se acerca
+updated_at
+TIMESTAMP
+audit_logs  [configuracion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+company_id
+UUID
+FK → companies
+user_id
+UUID
+FK → users — quien realizo la accion
+entity_type
+VARCHAR
+trip / stop / driver / vehicle / route / client...
+entity_id
+UUID
+ID del registro afectado
+action
+ENUM
+created / updated / cancelled / deleted
+changes
+JSONB
+que cambio exactamente: {before: {...}, after: {...}}
+ip_address
+VARCHAR
+IP del dispositivo desde donde se hizo la accion
+created_at
+TIMESTAMP
+cuando ocurrio — inmutable
+custom_fields  [configuracion]
+Campo
+Tipo
+Descripción
+id
+UUID
+PK
+company_id
+UUID
+FK → companies
+entity_type
+ENUM
+driver / vehicle / client / stop — a que entidad aplica
+field_key
+VARCHAR
+clave interna del campo: num_empleado
+field_label
+VARCHAR
+etiqueta visible en la interfaz: Num. Empleado
+field_type
+ENUM
+text / number / date / boolean
+required
+BOOLEAN
+si el campo es obligatorio al dar de alta el registro
+sort_order
+INTEGER
+orden de aparicion en el formulario
+created_at
+TIMESTAMP
+Notas de diseno
+Tema
+Detalle
+Multi-tenant
+Cada empresa tiene su propio schema en PostgreSQL. Las tablas de companies y users viven en el schema publico. Todas las demas tablas viven dentro del schema de cada empresa.
+Primary Keys
+Todos los IDs son UUID v4. Nunca enteros autoincrementales — facilita la migracion y evita colisiones entre schemas.
+JSONB
+Se usa JSONB para campos flexibles como work_days, custom_labels y changes. PostgreSQL indexa JSONB nativamente.
+Timestamps
+Todos los timestamps se guardan en UTC. La conversion a zona horaria local se hace en el frontend.
+Soft delete
+Ningun registro se elimina fisicamente. Se usa el campo status para desactivar. Esto preserva el historial de operacion.
+Tracking token
+El campo tracking_token en trips es un UUID aleatorio que se genera al crear el viaje. Se usa como parte de la URL publica de tracking para el cliente final.
+TMS SaaS — Modelo de BD  |  MVP v1.0  |  2025  |  Confidencial
+--- FILE: C:\Users\kevin\Documentos\cargalo TMS\TMS_MVP_Definicion_Ejecutiva-2.docx ---
+TMS SaaS
+Transportation Management System
+Definición del MVP — Documento Ejecutivo
+Versión MVP 1.0  —  2025
+Documento para dirección, gerencia y socios estratégicos
+🚛
+6 Módulos
+Core del MVP
+🗄️
+Multi-tenant
+Schema por empresa
+📱
+PWA Conductor
+Sin App Store
+⚡
+Tiempo Real
+Pusher + Google Maps
+¿Qué es el TMS SaaS?
+El TMS SaaS es una plataforma de software como servicio diseñada para empresas de logística y distribución en México y Latinoamérica. Permite a estas empresas gestionar de forma digital y en tiempo real toda su operación de transporte: desde la creación de rutas y asignación de conductores, hasta el seguimiento en vivo de cada entrega y el registro de evidencias al momento de completarla.
+El TMS reemplaza el caos operativo de WhatsApp, hojas de Excel y llamadas telefónicas por un sistema centralizado, trazable y en tiempo real — accesible desde cualquier dispositivo.
+El sistema está diseñado como una plataforma multi-empresa: cada organización que contrata el servicio opera en su propio espacio completamente aislado, con sus propios conductores, vehículos, clientes y configuraciones. Una empresa no puede ver ni acceder a los datos de otra.
+El MVP contempla los 6 módulos esenciales para que una empresa pueda operar de forma completa desde el primer día: crear y gestionar viajes con múltiples paradas, administrar sus catálogos base, definir rutas reutilizables, monitorear conductores en tiempo real, registrar evidencias de entrega y gestionar incidentes y cancelaciones.
+El Problema que Resuelve
+La operación logística de una empresa de distribución en Latinoamérica enfrenta hoy estos problemas de forma cotidiana:
+Cómo opera hoy la mayoría
+El dispatcher coordina por WhatsApp — sin trazabilidad
+Las rutas se planean en papel o en Excel
+No hay forma de saber dónde está un conductor en tiempo real
+Las evidencias de entrega son fotos sueltas en el celular
+Las incidencias se reportan por mensaje de texto
+Si algo sale mal, nadie sabe exactamente qué pasó ni cuándo
+No hay historial confiable de entregas para el cliente
+Cómo opera con el TMS
+El dispatcher crea y asigna viajes desde el panel web
+Las rutas se definen una vez y se reutilizan con un click
+El conductor aparece en el mapa en tiempo real
+La evidencia queda: foto, firma y hora exacta de entrega
+Las incidencias se reportan desde la app con foto y tipo
+El sistema registra cada evento con hora, usuario y ubicación
+El cliente recibe comprobante digital de su entrega
+A Quién Va Dirigido
+El MVP está diseñado para empresas mexicanas con operación de distribución propia — es decir, empresas que tienen su propia flota de vehículos y conductores, y que realizan entregas o recolecciones de forma regular a sus clientes.
+Tipo de empresa
+Ejemplo
+Por qué les sirve
+Distribuidoras FMCG
+Distribuidora de bebidas, botanas o lácteos
+Rutas diarias con 10-30 paradas por conductor
+Empresas de paquetería regional
+Mensajería de última milla en zona metropolitana
+Múltiples conductores, muchas entregas, necesitan trazabilidad
+Laboratorios y farmacias
+Distribución de medicamentos a puntos de venta
+Requieren evidencia y confirmación de entrega por normativa
+Empresas de distribución industrial
+Refacciones, insumos o materias primas
+Entregas programadas con ventanas de tiempo específicas
+Logística de e-commerce regional
+Última milla para tiendas online locales
+Volumen alto de paquetes, evidencia digital obligatoria
+El cliente ideal para el MVP es una empresa con entre 5 y 40 conductores activos, que hoy opera sin un sistema de gestión de transporte o con herramientas genéricas no diseñadas para logística.
+Los 6 Módulos del MVP
+El MVP está compuesto por seis módulos que funcionan de forma integrada. Juntos cubren el ciclo completo de una operación de entrega: desde la planificación hasta la confirmación de entrega y la gestión de cualquier imprevisto.
+Módulo 1 — Gestión de Viajes
+El corazón operativo del sistema
+Un viaje es la orden de trabajo que se le asigna a un conductor y un vehículo para realizar una serie de entregas o recolecciones en una jornada. A diferencia de los sistemas básicos que solo manejan un origen y un destino, este sistema permite viajes con múltiples paradas ordenadas, cada una con su propio seguimiento, estado y evidencia.
+¿Cómo funciona?
+1
+El dispatcher crea el viaje
+Selecciona conductor, vehículo, fecha de salida y agrega todas las paradas en el orden que deben visitarse. Puede lanzar el viaje al instante o programarlo para una fecha y hora específica.
+2
+El conductor recibe la asignación
+En su aplicación móvil aparece el viaje con todas las paradas ordenadas, las direcciones, los contactos y los horarios de cada punto.
+3
+El viaje arranca
+El conductor confirma la salida y el viaje cambia de estado a 'En tránsito'. El dispatcher puede ver su posición en tiempo real desde el panel web.
+4
+Parada por parada
+En cada punto el conductor marca su llegada, realiza la entrega o recolección, registra la evidencia y marca la parada como completada antes de continuar.
+5
+Cierre del viaje
+Cuando todas las paradas están atendidas el viaje se cierra automáticamente con un resumen completo de tiempos reales, evidencias e incidentes.
+Estados del viaje
+Estado
+Qué significa
+Programado
+El viaje fue creado y espera la hora de salida del conductor
+En tránsito
+El conductor ya salió — el viaje está activo y siendo monitoreado
+Completado
+Todas las paradas fueron atendidas exitosamente
+Completado con incidencias
+El viaje terminó pero hubo paradas que no se pudieron completar
+Cancelado
+El viaje fue cancelado antes o durante su ejecución
+Estados de cada parada
+Estado
+Qué significa
+Pendiente
+El conductor aún no llega a este punto
+En sitio
+El conductor llegó a la dirección y está atendiendo
+Completada
+Entrega o recolección realizada y evidencia registrada
+Incidencia
+No se pudo completar — se registró motivo, descripción y foto
+Saltada
+Se omitió por instrucción del dispatcher con justificación registrada
+Módulo 2 — Catálogos Base
+La información maestra de la operación
+Los catálogos son la base de datos operativa de cada empresa. Antes de crear cualquier viaje, la empresa registra su información maestra: quiénes son sus conductores, qué vehículos tiene disponibles, quiénes son sus clientes y en qué puntos reciben sus entregas.
+Conductores
+Nombre, foto y teléfono de contacto
+Número, tipo y vencimiento de licencia
+Zona o zonas geográficas asignadas
+Horario de trabajo: turno, días laborales y hora de inicio y fin de jornada
+Días no disponibles: vacaciones, incapacidad, días libres
+Límite máximo de paradas por día
+Status: activo, inactivo o de vacaciones
+Vehículos
+Placa, tipo y modelo
+Capacidad de carga en peso y volumen
+Tipo de combustible y rendimiento en km por litro
+Capacidad del tanque en litros
+Kilometraje actual para control de mantenimiento
+Status: disponible, en viaje o en mantenimiento
+Clientes
+Nombre de la empresa o persona
+RFC y datos fiscales
+Contacto principal
+Múltiples puntos de entrega por cliente
+Puntos de entrega
+Dirección exacta con coordenadas en mapa
+Horario de recepción: días y ventana de tiempo
+Tiempo estimado de atención en sitio
+Instrucciones especiales de acceso o contacto
+Módulo 3 — Gestión de Rutas
+Plantillas reutilizables para agilizar la operación diaria
+Una ruta es una plantilla de paradas predefinidas que representa un recorrido estándar de la empresa. Se configura una vez y puede utilizarse para generar viajes de forma rápida sin necesidad de capturar las paradas desde cero cada vez que se opera ese recorrido.
+Ejemplo: la empresa tiene una 'Ruta Zona Norte' que siempre visita los mismos 12 clientes en el mismo orden. En lugar de capturar esas 12 paradas cada lunes, el dispatcher selecciona la ruta, asigna el conductor y el sistema precarga todo automáticamente.
+Características principales
+Cada ruta tiene un nombre, un listado ordenado de paradas y un estado activa o inactiva
+Las paradas se pueden agregar, reordenar o eliminar de forma visual
+Cada parada de la ruta hereda los datos del catálogo de clientes: dirección, contacto y horario
+Al generar un viaje desde una ruta, las paradas se copian al viaje y se pueden ajustar sin modificar la plantilla original
+Las rutas pueden duplicarse para crear variantes rápidamente
+El banco de paradas frecuentes permite agregar puntos sin necesidad de buscarlos en el catálogo cada vez
+Módulo 4 — Visibilidad en Tiempo Real
+El conductor en el mapa — en vivo, por empresa
+El módulo de visibilidad permite al dispatcher ver la posición de todos sus conductores activos en un mapa en tiempo real, sin necesidad de llamarles o esperar que actualicen su estado manualmente. La comunicación entre la app del conductor y el panel web ocurre en milisegundos a través de canales de comunicación en tiempo real.
+¿Cómo funciona técnicamente?
+El conductor envía su posición GPS desde su aplicación móvil cada pocos segundos. El servidor recibe esa posición, la guarda en la base de datos y la distribuye instantáneamente al panel del dispatcher a través de Pusher — un servicio especializado en comunicación en tiempo real. Cada empresa tiene su propio canal aislado, por lo que los datos de una empresa nunca son visibles para otra.
+¿Qué ve el dispatcher?
+Mapa con la posición actual de cada conductor activo
+Al seleccionar un conductor, se muestra su ruta completa: la parte ya recorrida en color gris y la parte pendiente en color activo
+La línea de ruta se actualiza y recorta automáticamente conforme el conductor avanza
+Estado actual del viaje y paradas completadas vs pendientes
+Dashboard con resumen del día: viajes en tránsito, completados, con incidencias y programados
+Link de tracking para el cliente final
+Cada viaje genera automáticamente un enlace único de seguimiento que puede enviarse al cliente. Sin necesidad de crear una cuenta ni instalar nada, el cliente puede ver en su celular dónde está el conductor y cuándo llegará a su punto de entrega. Este enlace expira automáticamente cuando el viaje se cierra.
+Módulo 5 — Evidencias y Cierre de Entrega
+Comprobación digital de cada entrega — sin papel
+Al completar cada parada, el conductor registra desde su aplicación móvil la evidencia completa de la entrega. Este registro queda vinculado a la parada específica, al viaje y al cliente, y es consultable en cualquier momento desde el historial.
+¿Qué compone una evidencia completa?
+Elemento
+Qué registra
+Foto de entrega
+Imagen tomada con la cámara del celular del conductor al momento de la entrega
+Firma del receptor
+El receptor firma directamente en la pantalla del conductor o escanea un QR y firma desde su propio celular
+Nombre del receptor
+Quién recibió la mercancía en ese punto
+Código de entrega
+Código único generado por el sistema que el receptor puede verificar
+Hora exacta de entrega
+Timestamp automático del momento en que se confirma la entrega
+Geolocalización
+Coordenadas GPS del conductor al momento de registrar la evidencia — confirma que estaba en el lugar correcto
+Notas del conductor
+Observaciones adicionales que el conductor quiera registrar
+Al cerrar la parada, el sistema genera automáticamente un comprobante de entrega con todos estos datos que puede enviarse al cliente por WhatsApp o correo electrónico.
+Módulo 6 — Incidentes y Cancelaciones
+Control total de lo que sale del plan
+En la operación logística real siempre ocurren imprevistos. Este módulo permite al conductor reportar cualquier situación que impida completar una entrega, al dispatcher tomar decisiones en tiempo real y al sistema registrar todo el historial para análisis posterior.
+Tipos de incidente que el conductor puede reportar
+Cliente ausente
+Dirección incorrecta
+Acceso negado al lugar
+Mercancía dañada
+Entrega rechazada por el cliente
+Tiempo de espera excesivo
+Falla del vehículo
+Otro motivo con descripción libre
+¿Qué registra el conductor al reportar un incidente?
+Tipo de incidente seleccionado del catálogo
+Descripción con sus propias palabras
+Foto del incidente
+Geolocalización automática al momento del reporte
+¿Qué hace el dispatcher cuando recibe el incidente?
+El dispatcher recibe una alerta en tiempo real y puede tomar una de estas decisiones:
+Decisión
+Qué ocurre
+Reintento el mismo día
+Se verifica si el conductor tiene tiempo y se agrega la parada al final de su viaje actual
+Reintento al día siguiente
+Se programa la parada para el siguiente viaje de esa zona y se notifica al cliente
+Devolución al origen
+La mercancía regresa al almacén y se registra el motivo en el historial del cliente
+Resuelto en sitio
+El dispatcher habla con el cliente, se resuelve el problema y el conductor reintenta sin mover la parada
+Cancelaciones de viaje
+Un viaje puede cancelarse antes de salir o en tránsito. En ambos casos el sistema registra quién canceló, por qué motivo y en qué estado estaba el viaje al momento de la cancelación. Si el viaje tenía paradas pendientes, el dispatcher decide qué hacer con ellas: reasignar a otro conductor, reagendar para el día siguiente o devolver la mercancía.
+Arquitectura Multi-Empresa
+El sistema está diseñado para servir a múltiples empresas simultáneamente desde una sola infraestructura, manteniendo los datos de cada una completamente aislados y seguros.
+Una base de datos, múltiples espacios aislados
+El sistema utiliza una única base de datos PostgreSQL con una arquitectura de schemas separados por empresa. Esto significa que cada empresa que contrata el servicio tiene su propio espacio de datos dentro de la misma infraestructura, pero completamente separado del resto.
+Analogía: imagina un edificio de oficinas. Todas las empresas comparten el edificio (la infraestructura), pero cada una tiene su propia oficina con llave (su schema). Nadie puede entrar a la oficina de otra empresa.
+Espacio compartido (público)
+Solo contiene:
+Registro de empresas
+Usuarios y credenciales de acceso
+Configuración general por empresa
+Planes y facturación
+Espacio por empresa (aislado)
+Contiene toda la operación:
+Conductores y vehículos
+Clientes y puntos de entrega
+Rutas y viajes
+Evidencias e incidentes
+¿Qué significa esto en la práctica?
+Una empresa nunca puede ver los datos de otra — ni por error de sistema
+Cada empresa puede configurar el sistema según sus necesidades sin afectar a las demás
+Es posible hacer respaldo o migración de los datos de una empresa de forma independiente
+Si una empresa crece significativamente, sus datos pueden moverse a su propio servidor sin rediseñar el sistema
+Configurabilidad por Empresa
+Cada empresa puede adaptar el sistema a su forma de operar sin necesidad de desarrollos personalizados. Esta configurabilidad opera en tres niveles:
+Nivel 1 — Campos personalizados
+Cada empresa puede agregar sus propios campos de información a conductores, clientes, vehículos y puntos de entrega. Por ejemplo, una empresa puede agregar 'Número de empleado' al perfil del conductor, y otra puede agregar 'Número de guía' a cada parada. Estos campos son privados de cada empresa y no afectan a las demás.
+Nivel 2 — Configuración operativa
+Cada empresa decide cómo opera su sistema a través de un panel de configuración:
+Configuración
+Opciones
+Requisitos de entrega
+¿Es obligatoria la foto? ¿La firma? ¿El código de verificación?
+Tipos de incidente
+Cuáles aplican para su operación — pueden agregar tipos personalizados
+Notificaciones al cliente
+¿Cuándo y cómo se notifica al cliente sobre su entrega?
+Control de zonas
+¿Los conductores solo pueden atender sus zonas asignadas?
+Límites operativos
+Máximo de paradas por viaje, máximo de conductores por zona
+Resolución de incidentes
+Qué acción se toma por defecto cuando ocurre un incidente
+Nivel 3 — Terminología propia
+Cada empresa puede personalizar cómo el sistema nombra las cosas. Si una empresa le llama 'Repartidor' al conductor, 'Ruta del día' al viaje y 'Punto de entrega' a la parada — así aparecerá en toda su interfaz. Mismo sistema, misma lógica, lenguaje de cada empresa.
+La Aplicación del Conductor
+El conductor utiliza una aplicación móvil diseñada específicamente para sus necesidades durante el viaje. Esta aplicación es una PWA — Progressive Web App — lo que significa que se instala en el celular del conductor como si fuera una app nativa, pero sin necesidad de pasar por App Store o Google Play. Funciona en cualquier celular con Android o iOS.
+El conductor no necesita instalar nada desde una tienda de aplicaciones. Solo abre el navegador de su celular, ingresa a la dirección del sistema y lo instala en su pantalla de inicio con un solo tap.
+¿Qué puede hacer el conductor desde su app?
+Acción
+Descripción
+Ver sus viajes del día
+Lista de viajes asignados con estado y hora de salida programada
+Iniciar el viaje
+Confirma la salida y activa el seguimiento en tiempo real
+Ver paradas en orden
+Lista de paradas con dirección, contacto, hora estimada y tipo
+Navegar a la parada
+Abre Google Maps directamente con la dirección del punto
+Marcar llegada
+Registra la hora real de llegada al punto
+Registrar evidencia
+Toma foto, captura firma y confirma el nombre del receptor
+Reportar incidente
+Selecciona el tipo, escribe la descripción y toma foto
+Cancelar el viaje
+Si no puede continuar, reporta el motivo y notifica al dispatcher
+La aplicación está diseñada para ser extremadamente simple. El conductor solo ve lo que necesita en el momento que lo necesita, con botones grandes y flujos de una sola pantalla. No requiere capacitación técnica.
+Flujo Completo de Operación
+Este es el recorrido completo de un día de operación típico usando el sistema:
+1
+Configuración inicial (una sola vez)
+El administrador da de alta conductores, vehículos, clientes y puntos de entrega en los catálogos. Define las rutas frecuentes de la empresa. Esta configuración se reutiliza indefinidamente.
+2
+Planificación del día
+El dispatcher crea los viajes del día: selecciona la ruta base, asigna conductor y vehículo, y ajusta las paradas si es necesario. El sistema valida automáticamente que el conductor esté disponible y el vehículo también.
+3
+Notificación al conductor
+El conductor recibe en su aplicación la asignación del viaje con todas las paradas en orden.
+4
+Inicio del viaje
+El conductor confirma la salida desde su app. El viaje cambia a 'En tránsito' y el dispatcher puede ver su posición en el mapa.
+5
+Ejecución parada por parada
+En cada punto el conductor marca llegada, realiza la entrega, registra evidencia y continúa a la siguiente parada. El dispatcher ve el avance en tiempo real.
+6
+Gestión de imprevistos
+Si algo no sale según el plan, el conductor reporta el incidente desde su app. El dispatcher recibe la alerta y toma la decisión correspondiente.
+7
+Cierre del viaje
+Al completar la última parada el viaje se cierra automáticamente. El sistema genera un resumen con tiempos reales, evidencias e incidentes del viaje completo.
+8
+Comprobantes al cliente
+Cada cliente que recibió entrega recibe automáticamente su comprobante digital con foto, firma y hora de entrega.
+Stack Tecnológico — Alto Nivel
+A continuación se describe la arquitectura tecnológica del sistema en términos accesibles para tomadores de decisión no técnicos.
+Componente
+Tecnología
+¿Para qué sirve?
+Panel web (dispatcher)
+Next.js + TypeScript
+La interfaz que usa el dispatcher y el administrador en su computadora o tablet
+App del conductor
+PWA en Next.js
+La aplicación móvil del conductor — se instala sin App Store
+Servidor backend
+Express.js en Railway
+El motor que procesa toda la lógica del negocio y expone la API
+Base de datos
+PostgreSQL en Railway
+Donde se almacena toda la información de forma segura y estructurada
+Tiempo real
+Pusher
+El servicio que envía la posición del conductor al dashboard instantáneamente
+Mapas
+Google Maps API
+Para mostrar rutas, calcular distancias y tiempos entre paradas
+Almacenamiento de archivos
+Cloudinary o S3
+Donde se guardan las fotos de evidencia y firmas digitales
+Pagos y suscripciones
+Stripe
+Para cobrar a las empresas su suscripción mensual de forma automática
+Notificaciones
+WhatsApp Business API
+Para notificar a conductores y clientes sobre el estado de sus entregas
+Todo el sistema vive en la nube — ninguna empresa necesita instalar nada en sus servidores ni en sus computadoras. Se accede desde cualquier navegador con conexión a internet.
+Seguridad y Privacidad de los Datos
+Aislamiento por empresa
+Como se describió en la sección de arquitectura multi-empresa, cada empresa opera en su propio espacio de datos completamente aislado. No existe ninguna forma de que los datos de una empresa sean visibles o accesibles para otra.
+Control de acceso por roles
+Dentro de cada empresa, cada usuario tiene acceso solo a lo que su rol le permite:
+Rol
+¿Qué puede hacer?
+Administrador
+Acceso completo al sistema de su empresa incluyendo configuración, reportes y gestión de usuarios
+Dispatcher
+Crear y gestionar viajes, ver conductores en tiempo real y atender incidentes
+Supervisor
+Ver reportes y monitorear la operación sin poder modificar viajes o configuración
+Conductor
+Ver únicamente sus propios viajes asignados y registrar evidencias desde la app
+Trazabilidad completa
+Cada acción en el sistema queda registrada: quién la realizó, desde qué dispositivo y en qué momento. Si un viaje se modifica, cancela o un conductor reporta un incidente, existe un historial completo e inmutable de lo que ocurrió.
+Modelo Comercial
+Planes de suscripción mensual
+Starter
+Growth
+Pro
+Precio mensual
+$4,500 MXN
+$9,500 MXN
+$18,000 MXN
+Conductores incluidos
+Hasta 5
+Hasta 15
+Hasta 40
+Viajes
+Ilimitados
+Ilimitados
+Ilimitados
+Rutas
+Ilimitadas
+Ilimitadas
+Ilimitadas
+Soporte
+Email
+Email + Chat
+Soporte dedicado
+Onboarding
+Autoservicio
+Asistido
+Personalizado
+Conductor adicional fuera del plan: $600 MXN por conductor por mes. Plan Enterprise disponible para empresas con más de 40 conductores, con precio según volumen y SLA garantizado.
+Precio de early adopter
+Para los primeros 5 clientes: $5,000 MXN/mes con contrato anual, independientemente del plan. A cambio se solicita participación activa en el proceso de mejora del producto, casos de éxito y referidos.
+¿Por qué ese precio está justificado?
+Lo que el sistema resuelve
+Costo real sin el sistema
+Un planner logístico que ordena rutas manualmente
+$15,000 — $25,000 MXN por mes en salario
+Entregas fallidas por mala planificación
+$200 — $800 MXN por reintento de entrega
+Disputas con clientes por falta de evidencia
+Pérdida de cliente o descuentos por reclamos sin prueba
+Multas SCT por falta de carta porte
+Desde $50,000 MXN por viaje sin documento
+Tiempo del dispatcher coordinando por WhatsApp
+2 — 4 horas diarias de trabajo no productivo
+Roadmap Post-MVP
+El MVP es la base. Una vez que las primeras empresas estén operando, el sistema se irá enriqueciendo con módulos de mayor valor e inteligencia aplicada.
+Fase
+Período
+Qué se agrega
+MVP
+Meses 1-3
+Viajes, catálogos, rutas, visibilidad en tiempo real, evidencias, incidentes, PWA conductor
+Fase 2
+Meses 4-6
+VRPTW: optimización automática de rutas respetando ventanas de tiempo de cada cliente
+Fase 3
+Meses 7-9
+Control de combustible, velocidad, carga y estiba, escaneo de bultos con QR
+Fase 4
+Meses 10-12
+Score de conductores y clientes, analytics operativos, carta porte digital, portal del cliente
+Fase 5
+Año 2
+IA avanzada: predicción de demanda, mantenimiento predictivo, detección de anomalías, integraciones ERP
+El diferenciador de largo plazo es el VRPTW — el sistema que calcula automáticamente el orden óptimo de paradas respetando los horarios de recepción de cada cliente, el tiempo de atención en sitio, las distancias reales y la jornada del conductor. Ningún TMS de Latinoamérica lo resuelve bien hoy.
+El TMS que Latinoamérica no tiene todavía.
+Construido para la realidad logística de México — no adaptado de otro mercado.
+Operación completa desde el primer día. Escalable desde el primer cliente.
+--- FILE: C:\Users\kevin\Documentos\cargalo TMS\TMS_SaaS_Documento_Producto-2.docx ---
+TMS SAAS
+Transportation Management System
+Documento de Producto — Módulos, Features y Pantallas
+Versión 1.0  |  2025
+Stack: Next.js + TypeScript  |  Railway  |  PostgreSQL  |  Google Maps  |  Pusher
+13 Módulos
+Multi-tenant
+VRPTW Core
+Resumen Ejecutivo
+Este documento describe en detalle la arquitectura funcional del TMS SaaS — un Transportation Management System diseñado para empresas de logística en Latinoamérica. El sistema resuelve el problema central de la operación logística: orquestar conductores, vehículos, rutas, tiempos y clientes en tiempo real, con inteligencia aplicada para optimizar cada decisión operativa.
+A diferencia de los TMS genéricos del mercado, este sistema incorpora VRPTW (Vehicle Routing Problem with Time Windows) como núcleo de optimización, lo que permite resolver conflictos entre ventanas de recepción de clientes, tiempos de servicio en sitio, distancias reales y jornadas de conductores — de forma automática, antes de que el viaje salga.
+ARQUITECTURA DEL SISTEMA
+Frontend Web
+Next.js + TypeScript — Panel de dispatcher y administración
+App Conductor
+PWA en Next.js — Interfaz móvil para conductores
+Backend
+Express.js en Railway — API REST + WebSocket
+Base de datos
+PostgreSQL con schema por empresa (multi-tenant)
+Tiempo real
+Pusher — Canales por empresa para tracking en vivo
+Mapas
+Google Maps API — Ruteo, distancias y geocodificación
+Pagos
+Stripe — Suscripciones y billing por plan
+MÓDULO 01  Gestión de Viajes
+El core operativo del sistema — crear, asignar y monitorear cada viaje
+Un viaje es la orden de trabajo asignada a un conductor y un vehículo para completar una serie de entregas y/o recolecciones en una jornada. Cada viaje tiene un inicio, un fin, y N paradas ordenadas con seguimiento individual.
+Features del módulo
+✓
+Crear, editar y cancelar viajes
+✓
+Asignar conductor y vehículo a cada viaje
+✓
+Dos modalidades de lanzamiento: al instante o programado con fecha y hora
+✓
+Registro de múltiples paradas ordenadas con tipo: entrega, recolección o ambas
+✓
+Contacto y dirección individual por parada
+✓
+Hora estimada de llegada por parada calculada automáticamente
+✓
+Historial completo de cambios y eventos por viaje
+✓
+Generación de viaje desde una ruta guardada con un solo click
+✓
+Visualización del viaje completo en mapa antes de confirmar
+Estados del Viaje
+Programado
+El viaje fue creado y está en espera de que el conductor salga
+En Tránsito
+El conductor ya salió — el viaje está activo y en seguimiento
+Completado
+Todas las paradas fueron atendidas exitosamente
+Completado con incidencias
+Hubo paradas que no se pudieron completar por algún motivo
+Cancelado
+El viaje fue cancelado antes de iniciar
+Estados de cada Parada
+Pendiente
+El conductor aún no llega a esta parada
+En Sitio
+El conductor llegó a la dirección y está atendiendo
+Completada
+Entrega o recolección realizada con éxito
+Incidencia
+No se pudo completar — se registra motivo y evidencia
+Saltada
+Se omitió por decisión del dispatcher con justificación
+Pantallas del módulo
+Lista de viajes del día con filtros por estado, conductor y zona
+Formulario de creación de viaje con mapa interactivo
+Vista detalle del viaje con timeline de paradas en tiempo real
+Panel de parada individual con acciones: marcar llegada, completar, reportar incidencia
+Historial de viajes con búsqueda por fecha, conductor o cliente
+MÓDULO 02  Catálogos Base
+La base de datos operativa — conductores, vehículos, clientes y contactos
+Conductores
+DATOS BÁSICOS
+✓
+Nombre completo, foto y teléfono de contacto
+✓
+Número de licencia, tipo y fecha de vencimiento con alerta previa
+✓
+Status: Activo, Inactivo, Vacaciones, En taller
+✓
+Zona(s) geográfica(s) asignadas
+✓
+Límite máximo de paradas por día configurable
+✓
+Vehículo habitual asignado (modificable por viaje)
+✓
+Historial de viajes, score y KPIs individuales
+Vehículos
+✓
+Placa, tipo y modelo del vehículo
+✓
+Capacidad de carga: peso máximo (kg) y volumen máximo (m³)
+✓
+Tipo de combustible y rendimiento (km/litro)
+✓
+Capacidad del tanque en litros
+✓
+Kilometraje actual y registro de mantenimientos
+✓
+Status: Disponible, En viaje, En mantenimiento, En taller
+✓
+Alerta automática de mantenimiento preventivo por km
+Clientes y Puntos de Entrega
+✓
+Nombre de empresa o persona, RFC y datos de contacto
+✓
+Múltiples direcciones de entrega por cliente
+✓
+Horario de recepción por punto: días y ventana de tiempo
+✓
+Tiempo estimado de servicio en sitio por punto
+✓
+Instrucciones especiales por punto (acceso, persona de contacto, observaciones)
+✓
+Zona geográfica asignada
+✓
+Historial de entregas, incidencias y score del cliente
+Pantallas del módulo
+Directorio de conductores con filtros por zona y status
+Perfil individual de conductor con historial y métricas
+Inventario de vehículos con alertas de mantenimiento
+Directorio de clientes con sus puntos de entrega en mapa
+Formularios de alta y edición para cada catálogo
+MÓDULO 03  Gestión de Rutas
+Plantillas reutilizables de recorridos — define una vez, usa siempre
+Una ruta es una plantilla de paradas ordenadas que representa un recorrido estándar. Se define una vez y puede usarse para generar viajes de forma rápida sin capturar las paradas desde cero cada vez. Las modificaciones que se hagan al generar un viaje no afectan la plantilla original.
+Features del módulo
+✓
+Crear, editar y desactivar rutas
+✓
+Agregar, ordenar y eliminar paradas dentro de una ruta con drag & drop
+✓
+Definir tipo de parada por punto: entrega, recolección o ambas
+✓
+Asignar contacto, dirección y horario de recepción a cada parada
+✓
+Duplicar una ruta existente para crear variantes rápidamente
+✓
+Generar un viaje desde una ruta con un solo click
+✓
+Las paradas se copian al viaje y se pueden ajustar sin modificar la plantilla
+✓
+Banco de paradas frecuentes (Stop Library) para reutilizar sin capturar de nuevo
+✓
+Asignación de zonas geográficas para filtrar rutas por conductor
+✓
+Vista de la ruta completa en mapa antes de guardar
+Estados de una Ruta
+Activa
+Disponible para generar viajes — aparece en el selector
+Inactiva
+Archivada — no aparece en el selector pero conserva su historial
+Banco de Paradas — Stop Library
+Catálogo de puntos de entrega frecuentes que se pueden seleccionar y ordenar al armar una ruta sin necesidad de capturar datos desde cero. Cada parada del banco incluye dirección, contacto, horario de recepción, tiempo de servicio estimado y zona.
+Pantallas del módulo
+Lista de rutas activas e inactivas con mapa de vista previa
+Editor de ruta con mapa interactivo y drag & drop de paradas
+Banco de paradas con búsqueda por nombre, cliente o zona
+Vista de detalle de ruta con estadísticas históricas de viajes generados
+MÓDULO 04  Inteligencia de Ruteo — VRPTW
+Vehicle Routing Problem with Time Windows — el diferenciador central del sistema
+El VRPTW es el problema más complejo de la logística operativa. Resuelve simultáneamente los conflictos entre ventanas de recepción de cada cliente, tiempo de servicio en sitio por parada, distancias y tiempos reales entre puntos, y la jornada disponible del conductor. Sin este módulo, el dispatcher toma estas decisiones manualmente — con errores frecuentes y entregas fallidas.
+Validaciones al crear un viaje
+✓
+Cálculo del timeline completo del viaje antes de confirmar
+✓
+Detección de conflictos: paradas con ventanas de tiempo incompatibles con el orden propuesto
+✓
+Detección de conflictos de jornada: el viaje excede el horario del conductor
+✓
+Detección de paradas físicamente imposibles dado el tiempo disponible
+✓
+Sugerencia automática de orden óptimo de paradas respetando todas las ventanas
+✓
+Alerta con descripción del conflicto y opciones de resolución sugeridas
+✓
+Validación de capacidad: peso y volumen total del viaje vs capacidad del vehículo
+✓
+Validación de combustible: ¿alcanza el tanque para completar el recorrido?
+Monitoreo en tiempo real durante el viaje
+✓
+Recálculo automático de ETAs de paradas restantes cuando hay retrasos
+✓
+Alerta al dispatcher cuando una parada entra en riesgo de llegar fuera de ventana
+✓
+Cálculo de velocidad necesaria para recuperar retrasos y validación contra límites
+✓
+Sugerencia de acción cuando no es posible recuperar el tiempo: notificar cliente, reasignar parada, marcar reintento
+✓
+Visualización en tiempo real del timeline actualizado en el dashboard
+Datos requeridos por parada para el cálculo
+Por cada punto de entrega
+Ventana de recepción (hora inicio — hora fin)
+Días que recibe el punto
+Tiempo estimado de servicio en sitio
+¿Requiere cita previa?
+¿Acepta llegada anticipada?
+Por conductor
+Hora de inicio de jornada
+Hora de fin de jornada
+Velocidad promedio histórica por zona
+Tiempo de carga inicial en bodega
+Límite de paradas por día
+Pantallas del módulo
+Vista de validación pre-viaje con timeline visual y alertas de conflicto
+Panel de sugerencias de reordenamiento con comparativa antes/después
+Monitor en tiempo real con ETAs actualizados y alertas activas
+Historial de conflictos resueltos y tiempos de entrega reales vs estimados
+MÓDULO 05  Visibilidad en Tiempo Real
+Tracking en vivo de conductores y viajes — con Pusher por canal de empresa
+Features del módulo
+✓
+Mapa en vivo con posición de todos los conductores activos
+✓
+Selección de conductor individual para ver su ruta y progreso
+✓
+Línea de ruta dividida en dos: tramo recorrido (gris) y tramo pendiente (teal)
+✓
+Actualización automática de posición del conductor sin recargar la página
+✓
+Aislamiento por empresa mediante canales Pusher — datos de una empresa nunca llegan a otra
+✓
+Dashboard de viajes del día: pendientes, en tránsito, completados, con incidencias
+✓
+Indicadores en tiempo real: paradas completadas, paradas restantes, ETA próxima parada
+✓
+Historial de posiciones del conductor durante el viaje
+Arquitectura de tiempo real
+Cada empresa tiene su propio canal en Pusher (company-{id}). El conductor envía su posición GPS al backend cada N segundos. El backend valida, guarda en BD y emite el evento al canal correspondiente. El dashboard escucha el canal y actualiza el mapa en tiempo real sin polling.
+Link de tracking público para el cliente final
+✓
+Cada viaje genera un link único de tracking sin necesidad de login
+✓
+El cliente final puede ver la posición del conductor en tiempo real desde su celular
+✓
+Muestra: paradas completadas, parada actual, ETA estimado de llegada
+✓
+Se desactiva automáticamente cuando el viaje se cierra
+Pantallas del módulo
+Dashboard principal con mapa de todos los conductores activos
+Vista de viaje individual con timeline lateral y mapa con ruta dividida
+Panel de métricas del día: totales por estado, alertas activas, incidencias
+Página pública de tracking para el cliente final (sin autenticación)
+MÓDULO 06  Gestión de Combustible
+Control del consumo antes, durante y después de cada viaje
+Features del módulo
+✓
+Registro de rendimiento por vehículo (km/litro) con ajuste por tipo de carga
+✓
+Registro del nivel de combustible al inicio de cada viaje
+✓
+Cálculo automático de consumo estimado total basado en la distancia del viaje
+✓
+Validación antes de confirmar el viaje: ¿alcanza el tanque para completar el recorrido?
+✓
+Sugerencia de punto de recarga en ruta si el combustible no es suficiente
+✓
+Registro de recargas durante el viaje: litros, costo y ubicación
+✓
+Historial de consumo real vs estimado por vehículo y por conductor
+✓
+Detección de anomalías: consumo real significativamente superior al estimado puede indicar desvío o robo de combustible
+✓
+Reporte mensual de gasto en combustible por vehículo y por ruta
+Pantallas del módulo
+Panel de combustible por vehículo con historial de recargas
+Vista de consumo estimado vs real en el resumen de cada viaje
+Alerta visual en la creación de viaje cuando el tanque es insuficiente
+Reporte mensual de combustible exportable
+MÓDULO 07  Gestión de Velocidad y Conducción
+Monitoreo del comportamiento del conductor para seguridad y eficiencia
+Features del módulo
+✓
+Velocidad promedio esperada configurable por tipo de vía: urbana, carretera, zona industrial
+✓
+Cálculo de velocidad necesaria para recuperar retrasos en tiempo real
+✓
+Validación contra límites: si la velocidad necesaria excede el límite permitido, el sistema no la sugiere
+✓
+Monitoreo de velocidad real del conductor durante el viaje
+✓
+Alerta al dispatcher si el conductor supera la velocidad máxima permitida por la empresa
+✓
+Score de conducción por viaje: velocidad promedio, excesos registrados, frenadas bruscas
+✓
+Historial de alertas de velocidad por conductor
+✓
+Reporte de conducción mensual por conductor
+Pantallas del módulo
+Indicador de velocidad en tiempo real en la vista del viaje activo
+Historial de alertas de velocidad por conductor
+Reporte de score de conducción con ranking del equipo
+MÓDULO 08  Gestión de Carga, Estiba y Escaneo de Bultos
+Control total de lo que sube y baja del camión — sin errores
+El sistema genera automáticamente el plan de carga del camión en orden inverso al de entrega: lo que se entrega primero va hasta adelante, lo que se entrega último va hasta el fondo. Cada bulto tiene un QR que se escanea al cargar y al entregar para eliminar errores.
+Gestión de Carga y Capacidad
+✓
+Registro de número de bultos, peso y volumen por entrega en cada parada
+✓
+Tipos de mercancía: normal, frágil, refrigerado, peligroso
+✓
+Validación de peso total y volumen total vs capacidad del vehículo antes de confirmar el viaje
+✓
+Alerta si alguna entrega excede restricciones de carga del vehículo
+Plan de Estiba Automático
+✓
+Generación automática del orden de carga inverso al orden de entrega
+✓
+Reglas de estiba aplicadas automáticamente: peso abajo, frágil sin apilar, refrigerado separado
+✓
+Plan de carga imprimible para el almacenista con posición visual por parada
+✓
+Posición asignada en el camión: frente, centro, fondo — por cada lote de bultos
+Escaneo de Bultos con QR
+✓
+Generación de código QR único por bulto al confirmar el viaje
+✓
+Impresión de etiquetas QR para pegar en cada paquete
+✓
+Escaneo de carga en almacén: valida que todos los bultos del viaje suban al camión correcto
+✓
+Guía en tiempo real al escanear: indica la posición correcta en el camión
+✓
+Alerta si falta algún bulto antes de que el conductor salga
+✓
+Alerta si se intenta cargar un bulto que pertenece a otro viaje
+✓
+Escaneo de descarga en cada parada: valida que bajen los bultos correctos
+✓
+Alerta si el conductor intenta bajar un bulto de una parada diferente
+✓
+Cierre automático de la parada cuando todos los bultos están escaneados y confirmados
+✓
+Registro de bultos no entregados con motivo y evidencia fotográfica
+Pantallas del módulo
+Plan de carga visual por viaje — vista del camión con posición de cada lote
+Pantalla de escaneo en la PWA del conductor (cámara del celular)
+Lista de bultos por parada con estado: cargado, entregado, pendiente, incidencia
+Impresión de etiquetas QR desde el panel de administración
+MÓDULO 09  Gestión de Incidencias
+Registro, seguimiento y resolución de todo lo que sale del plan
+Features del módulo
+✓
+Catálogo configurable de tipos de incidencia: cliente ausente, dirección incorrecta, mercancía dañada, acceso negado, rechazo de entrega, tiempo de espera excesivo
+✓
+El conductor registra la incidencia con foto, tipo y nota desde su PWA
+✓
+El dispatcher recibe la incidencia en tiempo real con notificación inmediata
+✓
+El dispatcher toma acción: reintento mismo día, reintento día siguiente, devolución al origen
+✓
+Reintento programado generado automáticamente desde la incidencia
+✓
+Notificación automática al cliente cuando hay una incidencia en su entrega
+✓
+Historial de incidencias por cliente, por conductor, por ruta y por zona
+✓
+Detección de patrones: clientes o paradas con incidencias recurrentes
+✓
+Reporte de incidencias con análisis de causas frecuentes
+Pantallas del módulo
+Panel de incidencias activas del día con acciones rápidas
+Formulario de registro de incidencia en la PWA del conductor
+Vista de historial de incidencias con filtros y exportación
+Reporte de análisis de causas y patrones de incidencias
+MÓDULO 10  Evidencias y Cierre de Viaje
+Comprobación digital de cada entrega — foto, firma y hora real
+Features del módulo
+✓
+Foto de entrega tomada desde la cámara del celular del conductor en la PWA
+✓
+Firma digital del receptor directamente en la pantalla del conductor
+✓
+Firma QR: el cliente escanea un QR y firma desde su propio celular sin tocar el del conductor
+✓
+Registro automático de hora de llegada real y hora de completado por parada
+✓
+Comparativa de hora real vs hora estimada al cerrar cada parada
+✓
+Comprobante de entrega generado automáticamente con foto, firma, hora y datos del viaje
+✓
+El comprobante se envía al cliente por WhatsApp o email al cerrar la parada
+✓
+Cierre del viaje completo cuando todas las paradas están atendidas
+✓
+Resumen final del viaje: paradas completadas, incidencias, tiempos reales, consumo de combustible
+Pantallas del módulo
+Pantalla de cierre de parada en la PWA: foto + firma + botón completar
+Pantalla de firma QR para el cliente final
+Vista de comprobante de entrega descargable en PDF
+Resumen de cierre del viaje para el dispatcher
+MÓDULO 11  Score, KPIs y Analytics
+Datos para tomar mejores decisiones — no corazonadas
+Score de Conductores
+✓
+Puntualidad: tiempo real de llegada vs tiempo estimado por parada
+✓
+Tasa de entrega exitosa: entregas completadas vs totales asignadas
+✓
+Incidencias registradas: frecuencia y tipo
+✓
+Score de conducción: velocidad, excesos, comportamiento en ruta
+✓
+Ranking del equipo: quién es el conductor más eficiente con datos reales
+Score de Rutas
+✓
+Efectividad histórica: porcentaje de viajes completados sin incidencias
+✓
+Tiempo real promedio vs tiempo estimado
+✓
+Paradas problemáticas recurrentes detectadas automáticamente
+✓
+Costo promedio por viaje en esa ruta (combustible + tiempo)
+Score de Clientes
+✓
+Tasa de recepción: cuántas veces estaba disponible vs ausente
+✓
+Tiempo promedio de servicio en sitio real vs estimado
+✓
+Frecuencia de rechazos e incidencias
+✓
+Impacto en la ruta: cuánto retraso genera este cliente al resto del viaje
+KPIs Operativos del Dashboard
+✓
+Tasa de entrega exitosa del día, la semana y el mes
+✓
+Tiempo promedio real de entrega por parada
+✓
+Viajes con incidencias vs viajes limpios
+✓
+Costo total de combustible por período
+✓
+Conductores activos, en ruta y disponibles en tiempo real
+✓
+Paradas completadas vs pendientes en tiempo real
+Pantallas del módulo
+Dashboard ejecutivo con KPIs del día, semana y mes
+Perfil de desempeño individual por conductor con historial
+Análisis de rutas con mapa de calor de incidencias
+Reporte exportable de operación mensual
+MÓDULO 12  Mantenimiento de Flota
+Control preventivo de vehículos para evitar salidas con unidades en mal estado
+Features del módulo
+✓
+Registro de kilometraje actual por vehículo actualizado después de cada viaje
+✓
+Configuración de intervalos de mantenimiento preventivo por km o por tiempo
+✓
+Alertas automáticas cuando un vehículo se acerca al umbral de mantenimiento
+✓
+Registro de mantenimientos realizados: fecha, tipo, costo y taller
+✓
+Status del vehículo: Disponible, En viaje, En mantenimiento programado, En taller
+✓
+Un vehículo en mantenimiento no puede ser asignado a un viaje
+✓
+Historial completo de mantenimientos por unidad
+✓
+Reporte de costos de mantenimiento por vehículo y por período
+Pantallas del módulo
+Panel de flota con status de cada unidad y alertas de mantenimiento
+Historial de mantenimientos por vehículo
+Calendario de mantenimientos programados
+MÓDULO 13  Configuración, Roles y Negocio
+Gestión de usuarios, permisos, onboarding y billing
+Gestión de Usuarios y Roles
+✓
+Roles predefinidos: Superadmin, Admin empresa, Dispatcher, Supervisor, Conductor
+✓
+Permisos granulares por rol: qué puede ver, crear, editar y cancelar cada usuario
+✓
+El conductor solo ve sus propios viajes asignados
+✓
+El dispatcher ve todos los viajes y conductores de su empresa
+✓
+El admin ve todo el sistema de su empresa incluyendo configuración y reportes
+✓
+Invitación de usuarios por email con asignación de rol
+✓
+Historial de acciones por usuario: auditoría completa de quién hizo qué y cuándo
+Gestión de Turnos
+✓
+Definición de turnos por conductor: mañana, tarde, noche, mixto
+✓
+Días laborales por conductor
+✓
+Bloqueo automático de asignación fuera del turno del conductor
+✓
+Vista de disponibilidad del equipo por día y por hora
+Onboarding de Empresas
+✓
+Registro de nueva empresa con creación automática de schema en PostgreSQL
+✓
+Configuración inicial guiada: datos de la empresa, primer admin, plan seleccionado
+✓
+Importación masiva de catálogos iniciales: conductores, vehículos y clientes desde CSV
+✓
+Activación del plan y primer acceso al sistema en menos de 5 minutos
+Billing y Planes — Stripe
+Plan
+Starter
+Growth
+Pro
+Precio/mes
+$4,500 MXN
+$9,500 MXN
+$18,000 MXN
+Conductores
+Hasta 5
+Hasta 15
+Hasta 40
+Viajes
+Ilimitados
+Ilimitados
+Ilimitados
+Soporte
+Email
+Email + Chat
+Dedicado
+Conductor adicional fuera del plan: $600 MXN/mes. Plan Enterprise a precio según volumen con soporte dedicado y SLA garantizado.
+Panel Superadmin
+✓
+Vista de todas las empresas registradas con su status y plan activo
+✓
+Métricas globales de uso: viajes totales, conductores activos, empresas en crecimiento
+✓
+Estado de pagos y vencimientos por empresa
+✓
+Acceso de soporte a cualquier empresa sin intervenir en sus datos
+✓
+Gestión de planes y precios desde el panel
+Comunicaciones Automáticas
+✓
+WhatsApp al conductor cuando se le asigna un nuevo viaje
+✓
+WhatsApp al cliente cuando el conductor está a X paradas de llegar
+✓
+WhatsApp al cliente con foto de evidencia y comprobante al completar la entrega
+✓
+WhatsApp al cliente cuando hay una incidencia en su entrega
+✓
+Notificación push al dispatcher ante cualquier alerta del sistema
+✓
+Email de resumen diario de operación para el administrador
+Carta Porte Digital
+✓
+Generación automática del complemento de Carta Porte (obligatorio SCT México)
+✓
+Vinculada al viaje con todos los datos requeridos: origen, destino, mercancía, conductor, vehículo
+✓
+Timbrado digital mediante integración con PAC (Facturama o equivalente)
+✓
+Descargable en PDF y XML desde el historial del viaje
+✓
+Alerta si se intenta confirmar un viaje sin Carta Porte cuando es requerida
+Pantallas del módulo
+Gestión de usuarios y roles con tabla de permisos
+Panel de onboarding paso a paso para nuevas empresas
+Configuración de planes y billing en Stripe
+Panel superadmin con métricas globales y gestión de cuentas
+Centro de notificaciones y configuración de alertas automáticas
+App del Conductor — PWA
+La interfaz del conductor es una Progressive Web App (PWA) construida en Next.js. Se instala en el celular como una app nativa sin pasar por App Store o Google Play. Usa la cámara del celular para escanear QR y tomar fotos de evidencia.
+Pantallas de la PWA
+Pantalla de inicio — Mis viajes del día
+✓
+Lista de viajes asignados al conductor para el día actual
+✓
+Estado de cada viaje: programado, en tránsito, completado
+✓
+Botón de inicio de viaje que cambia el estado a En Tránsito
+Pantalla de viaje activo — Mis paradas
+✓
+Lista ordenada de paradas del viaje con estado individual
+✓
+Dirección, contacto y hora estimada por parada
+✓
+Botón de navegación que abre Google Maps con la dirección
+✓
+Botón de marcar llegada cuando el conductor está en el punto
+✓
+Botón de marcar completada con flujo de evidencia: foto + firma
+✓
+Botón de reportar incidencia con catálogo de tipos y nota
+Pantalla de escaneo de bultos
+✓
+Cámara del celular para escanear QR de cada bulto
+✓
+Validación en tiempo real: bulto correcto o alerta de error
+✓
+Indicador de bultos escaneados vs total esperado por parada
+✓
+Confirmación de parada completa cuando todos los bultos están escaneados
+Pantalla de evidencia — Cerrar parada
+✓
+Captura de foto desde la cámara del celular
+✓
+Panel de firma digital del receptor
+✓
+Opción de firma QR para que el cliente firme desde su propio celular
+✓
+Nota adicional opcional
+✓
+Botón de confirmar que cierra la parada y actualiza el sistema en tiempo real
+Roadmap de Desarrollo por Fases
+Fase
+Período
+Módulos
+MVP
+Meses 1-3
+Gestión de Viajes + Catálogos + Rutas + Visibilidad básica + Evidencias + PWA conductor
+Fase 2
+Meses 4-6
+VRPTW + Alertas en tiempo real + Gestión de incidencias + WhatsApp
+Fase 3
+Meses 7-9
+Combustible + Velocidad + Carga y Estiba + Escaneo QR + Mantenimiento
+Fase 4
+Meses 10-12
+Score y Analytics + Carta Porte + Portal del cliente + Tracking público
+Fase 5
+Año 2
+IA avanzada + Predicción de demanda + Mantenimiento predictivo + Integraciones ERP
+El TMS que Latinoamérica no tiene todavía.
+13 módulos. VRPTW como core. IA aplicada. Hecho para el mercado mexicano.

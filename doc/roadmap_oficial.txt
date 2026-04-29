@@ -1,0 +1,487 @@
+TMS SaaS
+Roadmap de Desarrollo — MVP
+Scrum | 18 Semanas | 4.5 Meses | 2 Devs + Claude Code
+De lo mas esencial a lo menos esencial | Entregas semanales al cliente | 2025 | Confidencial
+18 Semanas
+4.5 meses
+2 Devs
++ Claude Code
+Dev 1
+Web + Backend
+Dev 2
+App + Bot
+5 Fases
+Valor incremental
+Punto de partida
+Componente
+Estado actual
+Que falta
+Frontend web
+Catalogos (conductores vehiculos clientes B2B), rutas, viajes, dashboard con mapa, tracking con simulador en Next.js + TypeScript
+Puntos de entrega, B2C, actualizar forms con nuevos campos, ordenes, incidentes, notificaciones, fleet coordinator, superadmin, portales, landing y onboarding
+Backend
+Desde cero en Express.js
+Todo
+App Android
+Desde cero en Ionic + Capacitor + Angular
+Todo
+WhatsApp Bot
+Desde cero con Meta Cloud API
+Todo
+Dev 1
+Disponible desde semana 1
+Termina frontend semana 1-2. Arranca backend semana 3 y no para.
+Dev 2
+Disponible desde semana 1
+Arranca app y bot en paralelo desde semana 1. No toca frontend web.
+Documentos para Claude Code por dev
+Cada dev le pasa a Claude Code el documento correspondiente al inicio de cada sesion de trabajo. Claude Code usa ese documento como contexto para generar codigo alineado con la arquitectura del TMS.
+Documento
+Para quien
+Cuando usarlo
+TMS_Modelo_BD_MVP_Final.docx
+Dev 1 y Dev 2
+Siempre que se creen tablas endpoints o queries — contiene las 23 tablas con todos sus campos tipos y relaciones
+TMS_MVP_Definicion_Ejecutiva_Final.docx
+Dev 1 principalmente
+Para entender que debe hacer cada modulo, los estados, flujos y reglas de negocio
+TMS_Documento_General_Final.docx
+Dev 1 y Dev 2
+Para entender el stack completo, roles, permisos y arquitectura multi-tenant
+TMS_App_Conductor_Final.docx
+Dev 2 principalmente
+Para construir la app: pantallas, flujos, GPS, offline, APK y diseno
+TMS_WhatsApp_Bot_Final.docx
+Dev 2 principalmente
+Para construir el bot: flujos de conversacion, tipos de cliente, ordenes y tracking
+TMS_Roadmap_MVP_Scrum.docx
+Dev 1 y Dev 2
+Para entender el contexto de la semana actual y que se entrega al cliente
+Como pasarle el doc a Claude Code: claude code --file TMS_Modelo_BD_MVP_Final.docx "crea el endpoint de conductores segun el modelo de BD"
+Leyenda del roadmap
+Color / Elemento
+Significa
+Celda azul (Dev 1)
+Tarea del Dev 1: Web + Backend
+Celda verde (Dev 2)
+Tarea del Dev 2: App Android + WhatsApp Bot
+Celda amarilla (Lanzamiento)
+Lo que el cliente puede usar al final de esa semana
+Celda morada (Valor MVP)
+Porcentaje del valor total del MVP entregado hasta esa semana
+Claude Code doc
+Documento que el dev le pasa a Claude Code para tener contexto al desarrollar esa semana
+Fase 1 (negro)
+Maquetacion completa y base tecnica
+Fase 2 (verde)
+Catalogos y primer viaje real
+Fase 3 (morado)
+Incidentes ordenes y reproduccion historica
+Fase 4 (naranja)
+WhatsApp Bot Stripe y onboarding
+Fase 5 (verde oscuro)
+QA correcciones y go-live
+Roadmap semanal completo
+Sem
+Lanzamiento al cliente
+Valor MVP
+Dev 1 — Web + Backend
+Dev 2 — App Android + Bot
+FASE 1 — Maquetacion completa y base tecnica (Semanas 1-3)
+S1
+Frontend web completo — todas las pantallas disenadas
+10%
+• Puntos de entrega: lista detalle y formulario
+• Clientes B2C: formulario diferenciado por tipo moral/fisica
+• Actualizar form conductores: licencias x2 INE x2 contrato
+• Actualizar form vehiculos: 4 fotos tarjeta poliza verificacion
+• Actualizar form clientes B2B: rep legal documentos expediente
+• Ordenes: lista detalle crear con items y fotos
+• Incidentes: lista detalle y resolucion del dispatcher
+• Notificaciones: centro de notificaciones y badges
+Claude Code doc: MVP_Definicion_Ejecutiva_Final.docx + Documento_General_Final.docx
+• Pantallas 1-5 Ionic: login home detalle viaje parada activa evidencia
+• Pantallas 6-9 Ionic: incidente cancelacion completado perfil
+• Setup proyecto Ionic + Capacitor + Angular desde cero
+• Configurar tema oscuro y design system en Ionic
+• Instalar dependencias: Capacitor Geolocation Camera SQLite
+Claude Code doc: App_Conductor_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+S2
+Frontend web completo parte 2 — portales y onboarding
+15%
+• Panel Fleet Coordinator: lista drivers con semaforo lista vehiculos con semaforo
+• Panel Superadmin: empresas metricas acciones
+• Portal conductor web: ver perfil editar telefono y foto
+• Portal cliente web: perfil documentos ordenes comprobantes
+• Landing page: hero features planes testimonios CTA
+• Pagina de precios: los 4 planes con comparativa
+• Onboarding Demo: acceso directo sin registro
+• Onboarding Free Trial: registro 7 dias
+• Onboarding Plan pagado: registro + Stripe checkout
+• Login recuperacion por correo y por WhatsApp
+Claude Code doc: MVP_Definicion_Ejecutiva_Final.docx + WhatsApp_Bot_Final.docx
+• Setup Capacitor Background Geolocation en Android real
+• GPS en segundo plano verificado con pantalla bloqueada
+• Setup SQLite con Capacitor: estructura de tablas offline
+• Setup Firebase Cloud Messaging para push notifications
+• Configurar build del APK y firma digital
+• Setup Meta Cloud API: cuenta webhook y token de verificacion
+Claude Code doc: App_Conductor_Final.docx + WhatsApp_Bot_Final.docx
+S3
+Auth funcional — el equipo puede entrar al sistema
+20%
+• Setup Railway: PostgreSQL multi-tenant schema publico y schema por empresa
+• Setup Vercel: deploy continuo desde el repo
+• Auth JWT: login logout refresh token con los 7 roles
+• Middleware de permisos: cada endpoint valida el rol
+• Recuperacion por correo: link expira en 30 min via Resend
+• Recuperacion por WhatsApp: codigo 6 digitos expira 10 min
+• Demo compartida: datos precargados de empresa ficticia en schema publico
+• Correo transaccional al crear conductor con sus credenciales
+Claude Code doc: Modelo_BD_MVP_Final.docx + Documento_General_Final.docx
+• Login de la app conectado al backend real via JWT
+• Sesion persistente: token guardado en storage del dispositivo
+• Pantalla de home conectada: muestra viajes del dia (vacio por ahora)
+• Buffer SQLite offline: estructura lista para guardar acciones sin internet
+• Testing del GPS en segundo plano en 3 dispositivos Android distintos
+• Build APK de desarrollo listo para testing interno
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+FASE 2 — Catalogos y primer viaje real (Semanas 4-7)
+S4
+Catalogos funcionales — conductores y vehiculos dados de alta
+30%
+• CRUD conductores: alta edicion desactivar con documentos obligatorios
+• Upload de documentos a Cloudinary o S3
+• CRUD vehiculos: alta edicion con 4 fotos y documentos
+• Alertas de vencimiento: licencias polizas verificaciones
+• Permisos: Fleet Coordinator ve expediente completo, Dispatcher ve solo operativo
+• Validacion de documentos obligatorios: no se guarda sin todos los campos
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Sincronizacion de lotes GPS: acumular puntos offline enviar en lotes al recuperar senal
+• recorded_at (campo) vs synced_at (servidor) implementados en SQLite
+• App conectada: pantalla home muestra estado de conexion verde/amarillo
+• Testing de sincronizacion: desconectar, hacer acciones, reconectar, verificar
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+S5
+Clientes y rutas — base completa para crear viajes
+38%
+• CRUD clientes B2B: formulario con tipo moral, rep legal y documentos
+• CRUD clientes B2C: formulario con tipo fisica, INE y foto
+• Logica de formulario dinamico: campos cambian segun client_type
+• CRUD puntos de entrega: direccion GPS contacto ventana de recepcion
+• CRUD rutas: crear paradas ordenadas drag and drop
+• Generar viaje desde ruta con un click: copia paradas al nuevo viaje
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Parada activa funcional: ETA contacto boton llamada directa boton Maps
+• Boton Como llegar: abre Google Maps con coordenada exacta del delivery_point
+• Boton Llegue: registra GPS + timestamp real, funciona offline
+• Testing: marcar llegada sin internet, verificar que se guarda en SQLite
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+S6
+Primer viaje real — crear viaje asignar y salir
+48%
+• CRUD viajes: crear con conductor vehiculo y paradas ordenadas
+• Flujo de estados del viaje: scheduled in_transit completed completed_with_incidents cancelled
+• Flujo de estados por parada: pending on_site completed incident skipped
+• Vista de lista de viajes del dia con filtros por estado
+• Vista de detalle del viaje con paradas y progreso
+• El conductor consume 1 credito del plan al crear cada viaje
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Home muestra viajes reales del dia asignados al conductor
+• Detalle del viaje con paradas reales en orden
+• Iniciar viaje: activa GPS en segundo plano, cambia status a in_transit
+• El dispatcher ve el status del viaje cambiar en tiempo real
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+S7
+Evidencias y tracking — entrega documentada y conductor en el mapa
+58%
+• Pusher: canal por empresa para tiempo real
+• Dashboard con mapa: conductores en vivo con su posicion GPS
+• Link de tracking publico: tracking_token en la URL para el cliente final
+• Vista de recorrido en el mapa por viaje activo
+• Comprobante PDF generado automaticamente al cerrar parada
+Claude Code doc: Modelo_BD_MVP_Final.docx + App_Conductor_Final.docx
+• Evidencia completa: foto nativa via Capacitor Camera, firma digital en pantalla, nombre receptor
+• Foto comprimida automaticamente antes de subir
+• Evidencia funciona offline: foto guardada localmente, sube al recuperar senal
+• APK firmado v0.1 listo para distribucion a primeros conductores reales
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+FASE 3 — Incidentes, ordenes y reproduccion historica (Semanas 8-11)
+S8
+Incidentes funcionales — los problemas quedan registrados
+63%
+• CRUD incidentes: tipos, descripcion, foto, GPS, resolucion del dispatcher
+• Panel de incidentes: lista con filtros, detalle, asignar resolucion
+• Cancelacion de viajes: motivo, descripcion, notificacion al dispatcher
+• Permisos: dispatcher resuelve incidentes, supervisor solo lee
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Reporte de incidente desde la app: selector tipo, descripcion, foto opcional, GPS automatico
+• Funciona offline: se guarda localmente con timestamp real
+• Cancelacion de viaje: selector motivo, doble confirmacion, GPS se detiene
+• Pantalla viaje completado: paradas completadas vs incidencias, distancia recorrida
+Claude Code doc: App_Conductor_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+S9
+Ordenes de servicio — el pedido del cliente antes del viaje
+67%
+• CRUD ordenes: tipo routine/extraordinary, pickup_type, ventana de tiempo
+• CRUD order items: descripcion cantidad unidad foto del articulo
+• Vinculacion orden a viaje: al crear un viaje puede venir de una orden
+• Portal web cliente: ver sus ordenes, estado, comprobantes y descargar PDF
+• Portal web conductor: ver perfil, editar telefono y foto, ver historial de viajes
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Push notifications via FCM: nuevo viaje asignado, mensaje del dispatcher
+• Testing push con app cerrada y telefono bloqueado
+• Distribucion automatica del APK por correo al dar de alta conductor
+• Instrucciones de instalacion en el correo con capturas de pantalla
+Claude Code doc: App_Conductor_Final.docx + WhatsApp_Bot_Final.docx
+S10
+Reproduccion historica del recorrido
+70%
+• Reproduccion animada del recorrido: camion animado moviendose punto a punto
+• Controles: play pause velocidad 1x 2x 4x barra de progreso con timestamp
+• Marcadores en el mapa: paradas completadas incidentes inicio y fin del viaje
+• Geofence 500m: detecta cuando el conductor se acerca al delivery_point
+• Notificacion al cliente cuando el conductor esta a menos de 5 minutos
+Claude Code doc: Modelo_BD_MVP_Final.docx + App_Conductor_Final.docx
+• Testing intensivo offline: autopista tunel zona rural sin senal por 30+ minutos
+• Verificar que recorded_at y synced_at son correctos despues de sync
+• Verificar que el recorrido se reproduce con tiempos reales de campo
+• Testing de bateria: GPS en segundo plano por 8 horas continuas
+Claude Code doc: App_Conductor_Final.docx + Modelo_BD_MVP_Final.docx
+S11
+Notificaciones multicanal — el dispatcher siempre informado
+74%
+• Centro de notificaciones en el panel web: lista con badges y marcado como leido
+• Correos transaccionales: incidente reportado, viaje cancelado, licencia por vencer, trial por expirar
+• Push al dispatcher en el navegador via Web Push API
+• WhatsApp al dispatcher: incidente y cancelacion con detalle del evento
+• Configuracion por empresa: que canales activar en company_settings
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Bot parte 1: setup webhook Meta Cloud API en Express.js verificacion de firma
+• Identificacion de cliente por numero de WhatsApp en la BD
+• Flujo de registro B2B: nombre empresa RFC rep legal
+• Flujo de registro B2C: nombre INE foto
+• Envio de credenciales al cliente y link al portal web
+Claude Code doc: WhatsApp_Bot_Final.docx + Modelo_BD_MVP_Final.docx
+FASE 4 — WhatsApp Bot, Stripe y Onboarding (Semanas 12-15)
+S12
+WhatsApp Bot funcional — clientes piden por WhatsApp
+80%
+• Landing page conectada al backend: formulario de registro funcional
+• Onboarding Demo: acceso con credenciales genericas a empresa ficticia
+• Onboarding Free Trial: registro crea schema automaticamente, timer de 7 dias
+• Avisos dia 5 y dia 7 por correo y WhatsApp al admin
+• Eliminacion automatica del schema al vencer sin convertir
+Claude Code doc: MVP_Definicion_Ejecutiva_Final.docx + Modelo_BD_MVP_Final.docx
+• Bot parte 2: ordenes rutinarias con propuesta automatica
+• Confirmacion modificacion y cancelacion del pedido habitual por WhatsApp
+• Ordenes extraordinarias: articulos con fotos fecha y ventana de tiempo
+• Confirmacion automatica y creacion de la orden en el TMS
+Claude Code doc: WhatsApp_Bot_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+S13
+Stripe funcional — cobro automatico desde el dia 1
+85%
+• Stripe: suscripciones mensuales cobro automatico el mismo dia cada mes
+• Stripe: paquetes de creditos para excedentes de viajes y usuarios
+• Logica de creditos: validar antes de crear viaje o usuario, bloquear si no hay
+• Onboarding plan pagado: registro + Stripe checkout + schema creado automaticamente
+• Panel superadmin funcional: lista empresas metricas ingresos suspender cambiar plan
+Claude Code doc: Modelo_BD_MVP_Final.docx + MVP_Definicion_Ejecutiva_Final.docx
+• Bot parte 3: tracking al cliente cuando el conductor sale con el link
+• Notificaciones proactivas: en camino cerca del punto entrega completada
+• Comprobante digital enviado por WhatsApp al completar la entrega
+• Historial de ordenes: el cliente consulta por WhatsApp y descarga comprobantes
+Claude Code doc: WhatsApp_Bot_Final.docx + App_Conductor_Final.docx
+S14
+Recuperacion de contrasena y accesos completos
+88%
+• Recuperacion por correo: link unico expira 30 minutos via Resend
+• Recuperacion por WhatsApp: codigo 6 digitos expira 10 minutos via bot
+• Pantalla de eleccion de metodo en el login
+• Wizard de configuracion inicial post-registro: logo bot tipos de clientes canales
+• Pagina de precios conectada: CTA lleva al formulario del plan correspondiente
+Claude Code doc: MVP_Definicion_Ejecutiva_Final.docx + WhatsApp_Bot_Final.docx
+• Bot: recuperacion de contrasena por WhatsApp integrada al flujo del bot
+• Flujo completo end-to-end bot: registro orden tracking comprobante historial
+• Testing del bot con 5 numeros reales de WhatsApp distintos
+• Ajustes de flujos segun resultados del testing con usuarios reales
+Claude Code doc: WhatsApp_Bot_Final.docx + App_Conductor_Final.docx
+S15
+Integracion end-to-end — todo funciona junto
+93%
+• Testing end-to-end flujo completo: landing registro pago catalogo viaje evidencia comprobante
+• Testing de todos los roles y permisos: cada rol ve exactamente lo que debe
+• Testing de Stripe en produccion: cobro excedentes creditos y cancelacion
+• Optimizacion de velocidad de la API: queries lentas carga de imagenes
+• Setup de monitoreo: logs de errores alertas de uptime en Railway y Vercel
+Claude Code doc: Documento_General_Final.docx + Modelo_BD_MVP_Final.docx
+• Testing end-to-end app: APK instalado viaje asignado GPS activo evidencia sincronizada
+• Testing en 5 dispositivos Android distintos de diferentes marcas y versiones
+• Testing bot completo: cliente nuevo registro orden extraordinaria tracking comprobante
+• Lista de bugs por prioridad: criticos medios menores
+Claude Code doc: App_Conductor_Final.docx + WhatsApp_Bot_Final.docx
+FASE 5 — QA, correcciones y go-live (Semanas 16-18)
+S16
+Correcciones de bugs criticos y medios
+96%
+• Correccion de todos los bugs criticos del testing
+• Correccion de bugs medios que afectan la experiencia
+• Ajustes de UX basados en feedback del testing con usuarios reales
+• Documentacion de uso para admins y dispatchers (PDF y video corto)
+• Deploy de produccion con dominio definitivo y SSL
+Claude Code doc: Documento_General_Final.docx
+• Correccion de bugs de la app y el bot
+• Optimizacion de consumo de bateria del GPS en segundo plano
+• APK final v1.0.0 firmado con certificado de produccion
+• Documentacion de instalacion del APK para conductores (PDF con capturas)
+Claude Code doc: App_Conductor_Final.docx
+S17
+Polish final y preparacion para primeros clientes
+98%
+• Correccion de bugs menores y mejoras de polish
+• Optimizacion de carga: lazy loading imagenes compresion assets
+• Setup de backups automaticos de la BD cada 24 horas
+• Onboarding de los primeros 3 clientes early adopters con soporte directo
+• Monitoreo activo de errores en produccion durante el onboarding
+Claude Code doc: Documento_General_Final.docx
+• Soporte de instalacion del APK a conductores de los primeros clientes
+• Monitoreo de GPS y sincronizacion en operacion real
+• Correccion rapida de bugs que aparezcan en operacion real
+• Feedback de conductores para backlog de la Fase 2
+Claude Code doc: App_Conductor_Final.docx
+S18
+Go-live oficial — MVP en produccion con primeros 5 clientes
+100%
+• Onboarding de los 5 primeros clientes early adopters completo
+• Sistema estable en produccion con monitoreo 24/7
+• Backlog de Fase 2 priorizado con feedback de primeros clientes
+• Inicio de desarrollo de VRPTW: el diferenciador del mercado
+Claude Code doc: Documento_General_Final.docx + Roadmap_MVP_Scrum.docx
+• APK v1.0.0 distribuido a todos los conductores de los primeros 5 clientes
+• Bot activo con los primeros clientes reales de los early adopters
+• Reporte de GPS y sincronizacion en operacion real durante primera semana
+Claude Code doc: App_Conductor_Final.docx + Roadmap_MVP_Scrum.docx
+Resumen de valor entregado por fase
+Fase
+Semanas
+Valor al terminar
+Lo que puede hacer el cliente
+1
+1-3
+20%
+Entrar al sistema con todos los roles. Datos de empresa fictivia disponibles en Demo.
+2
+4-7
+58%
+Dar de alta catalogo completo, crear y ejecutar viajes reales, registrar evidencias, ver conductores en el mapa en vivo.
+3
+8-11
+74%
+Gestionar incidentes, crear ordenes de servicio, ver recorridos historicos, recibir notificaciones por 4 canales.
+4
+12-15
+93%
+Registrarse desde la landing, pagar con Stripe, recibir y rastrear ordenes por WhatsApp, bot completamente funcional.
+5
+16-18
+100%
+Sistema completo en produccion, 5 primeros clientes reales operando, backlog Fase 2 priorizado.
+Criterio de priorizacion
+Cada semana responde una sola pregunta: si el cliente tuviera acceso hoy, que necesitaria para generar valor? Lo que responde esa pregunta primero va primero.
+Prioridad
+Modulo
+Razon de la prioridad
+1
+Auth y roles
+Sin esto nadie puede entrar a nada
+2
+Catalogos conductores y vehiculos
+Sin conductores no hay viajes. Sin vehiculos no hay asignacion.
+3
+Clientes rutas y viajes
+Es el core del negocio — reemplaza el WhatsApp del dispatcher
+4
+App Android con GPS
+Sin la app el conductor no puede reportar nada en campo
+5
+Evidencias y tracking en mapa
+Sin evidencia la entrega no queda documentada. Sin mapa el dispatcher opera a ciegas.
+6
+Incidentes
+Sin esto los problemas siguen manejandose por fuera del sistema
+7
+Ordenes de servicio
+Formaliza el pedido antes del viaje — conecta al cliente con la operacion
+8
+Reproduccion historica
+Visibilidad de lo que paso — util para auditorias y reclamos
+9
+Notificaciones multicanal
+El dispatcher siempre informado sin estar viendo la pantalla
+10
+Landing y onboarding self-service
+Para conseguir clientes nuevos sin intervencion manual
+11
+Stripe automatizado
+Para cobrar sin operacion manual — al inicio se puede cobrar manualmente
+12
+WhatsApp Bot
+Automatiza la toma de ordenes — poderoso pero no bloqueante para operar
+13
+Panel Superadmin
+Nosotros podemos operar manualmente al inicio
+14
+QA y polish
+Lo ultimo porque necesita todo lo anterior para hacerse bien
+Definition of Done por sprint
+Una semana es DONE cuando el cliente puede usar lo prometido en el lanzamiento sin bugs criticos. No es done si solo funciona en local o si hay flujos rotos.
+Criterio
+Descripcion
+Funciona en produccion
+El feature esta en el ambiente real — no solo en local ni en staging
+Sin bugs criticos
+No hay errores que bloqueen el flujo principal del usuario
+Roles respetados
+Los permisos funcionan correctamente para todos los roles involucrados
+Responsive
+Para features del panel web: funciona bien en celular ademas de desktop
+App en dispositivo real
+Para features de la app: probado en al menos 2 Android fisicos distintos
+Datos reales
+Se probo con datos reales, no solo con datos de prueba inventados
+Claude Code doc actualizado
+Si hubo cambios de arquitectura o BD se actualizo el documento correspondiente
+Riesgos y mitigaciones
+Riesgo
+Prob
+Impacto
+Mitigacion
+Meta Cloud API tarda en aprobar templates de mensajes
+Alta
+Retrasa bot 1-2 semanas
+Enviar solicitud desde semana 1 aunque el bot no este listo
+GPS en segundo plano se comporta diferente en distintos Android
+Media
+Retrasa app 1 semana
+Testing en dispositivos reales desde semana 3, no esperar al QA
+Stripe rechaza la cuenta
+Baja
+Retrasa cobros
+Tramitar cuenta Stripe desde semana 1 en paralelo
+Claude Code genera codigo que funciona en dev pero falla en prod
+Media
+Bugs en produccion
+Deploy a produccion desde semana 3, no al final
+Un dev se atrasa y bloquea al otro
+Media
+Retraso en cascada
+Backend expone endpoints con datos mock desde semana 3 para que el frontend no espere
+Schema multi-tenant tiene bugs de aislamiento
+Baja pero critica
+Fuga de datos entre empresas
+Testing de aislamiento desde semana 3 antes de avanzar
+Cloudinary o S3 tiene costos altos por volumen de fotos
+Baja
+Costo operativo
+Definir limites de tamano de archivo y comprimir antes de subir
+TMS SaaS — Roadmap MVP Scrum | 18 Semanas | 2 Devs + Claude Code | 2025 | Confidencial
