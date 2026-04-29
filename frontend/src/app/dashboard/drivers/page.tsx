@@ -9,8 +9,8 @@ import dynamic from 'next/dynamic';
 // --- HELPERS ---
 const initials = (name: string) => (name || '').split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
 const fmtMXN = (n: number) => "$" + n.toLocaleString('es-MX');
-const fmtDate = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
-const fmtDateLong = (s: string) => new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const fmtDate = (s: string) => s ? new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '--';
+const fmtDateLong = (s: string) => s ? new Date(s).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '--';
 
 function StatusPill({ s }: { s: string }) {
   const map: Record<string, string> = { active: "Activo", inactive: "Inactivo", suspended: "Suspendido", pending: "Pendiente" };
@@ -242,7 +242,20 @@ function DriverEditor({ initialData, onClose, onSave }: { initialData?: any, onC
 
 function DriverDetail({ driver, onClose }: { driver: any, onClose: () => void }) {
   const [tab, setTab] = useState('summary');
-  const dData = driver;
+  const dData = driver || { 
+    nombre: '', 
+    estado: 'active', 
+    id: '---', 
+    email: '', 
+    tel: '', 
+    zona: '', 
+    ciudad: '', 
+    desde: new Date().toISOString(), 
+    rating: 5, 
+    envios: 0, 
+    gasto: 0, 
+    entregas_hoy: 0 
+  };
 
   return (
     <div className="detail-shell animate-in fade-in slide-in-from-right-4">

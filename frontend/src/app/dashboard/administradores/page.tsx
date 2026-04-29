@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Download, Plus, Search, Filter, Edit, MoreHorizontal, User, Shield, LifeBuoy, X, Mail, Settings, Calendar, Key, Phone, Map, Eye } from 'lucide-react';
 
@@ -230,12 +229,16 @@ function AdminDetail({ admin, isCreate = false, onClose, onSave }: { admin?: any
 }
 
 
-const AdministradoresContent = dynamic(() => Promise.resolve(AdministradoresContentInternal), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Administradores...</div>
-});
-
 export default function Administradores() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return (
+    <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">
+      Cargando Administradores...
+    </div>
+  );
+
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <AdministradoresContent />
@@ -243,11 +246,20 @@ export default function Administradores() {
   );
 }
 
-function AdministradoresContentInternal() {
+function AdministradoresContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const actionParam = searchParams.get('action');
-  const idParam = searchParams.get('id');
+  const [params, setParams] = React.useState({ action: null as string | null, id: null as string | null });
+
+  React.useEffect(() => {
+    setParams({
+      action: searchParams.get('action'),
+      id: searchParams.get('id')
+    });
+  }, [searchParams]);
+
+  const actionParam = params.action;
+  const idParam = params.id;
 
   const [admins, setAdmins] = useState(ADMINS_MOCK);
   const [q, setQ] = useState("");
