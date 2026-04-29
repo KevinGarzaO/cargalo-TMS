@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap');
+@import "./detail.css";
+@import "./validation.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-blue:        #1A8FBF;
+  --c-blue-deep:   #0E6E97;
+  --c-blue-soft:   #E6F2F7;
+  --c-teal:        #4CB89C;
+  --c-mint:        #66D6B5;
+  --c-grad:        linear-gradient(110deg, #2BA0C5 0%, #4CB89C 100%);
+  --c-grad-soft:   linear-gradient(110deg, #E6F2F7 0%, #E8F5EF 100%);
+  --c-grad-button: linear-gradient(110deg, #1A8FBF 0%, #2FA89D 100%);
+
+  --ink-900: #0E2A3A;
+  --ink-700: #2C4654;
+  --ink-500: #5C7480;
+  --ink-400: #8497A0;
+  --ink-300: #B6C4CB;
+  --ink-200: #D9E2E6;
+  --ink-100: #ECF1F3;
+  --ink-50:  #F4F7F9;
+
+  --bg:      #F2F6F8;
+  --sidebar-w: 260px;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-ink-900 bg-[#F2F6F8] antialiased m-0 p-0 overflow-hidden h-full;
+    font-size: 14px;
+  }
+}
+
+@layer components {
+  .grad-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--c-grad);
+  }
+
+  .btn-primary {
+    @apply w-full py-4 px-5 rounded-full text-white font-semibold text-[15px] tracking-wide transition-all shadow-[0_10px_24px_-8px_rgba(26,143,191,0.45)];
+    background: var(--c-grad-button);
+  }
+  .btn-primary:hover { @apply brightness-105 -translate-y-0.5; }
+  .btn-primary:active { @apply translate-y-0; }
+
+  .btn {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-[13px] transition-all;
+  }
+  .btn-solid {
+    @apply text-white shadow-[0_6px_14px_-4px_rgba(26,143,191,0.4)];
+    background: var(--c-grad-button);
+  }
+  .btn-ghost {
+    @apply bg-white text-ink-700 border border-ink-200 hover:border-ink-300 hover:bg-ink-50;
+  }
+
+  .card {
+    @apply bg-white rounded-[14px] border border-ink-100 shadow-[0_1px_2px_rgba(14,42,58,0.05)] p-[22px];
+  }
+
+  .kpi {
+    @apply bg-white border border-ink-100 rounded-[14px] p-5 relative overflow-hidden;
+  }
+  .kpi-icon {
+    @apply w-[42px] h-[42px] rounded-xl grid place-items-center mb-3.5;
+    background: var(--c-blue-soft);
+    color: var(--c-blue-deep);
+  }
+  .kpi-icon.teal { @apply bg-[#E6F4EE] text-[#2C8B6E]; }
+  .kpi-icon.amber { @apply bg-[#FDF1DF] text-[#B07217]; }
+  .kpi-icon.rose  { @apply bg-[#FCE8E8] text-[#B83C3C]; }
+
+  .status {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border;
+  }
+  .status::before { content: ""; @apply w-1.5 h-1.5 rounded-full bg-current; }
+  .status.active { @apply bg-[#E6F5EC] text-[#2C8B6E] border-[#CDEBD9]; }
+}
+
+/* ─── Scrollbar premium oscuro (sidebar nav) ─────────────────────────────── */
+.sidebar-scroll {
+  scrollbar-width: thin;                        /* Firefox */
+  scrollbar-color: rgba(26,143,191,0.25) transparent; /* Firefox thumb / track */
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 99px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(26,143,191,0.0);
+  border-radius: 99px;
+  transition: background 0.3s;
+}
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(26,143,191,0.35);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(76,184,156,0.55);
+}
+
+/* ─── Scrollbar premium claro (paneles de monitoreo, listas) ─────────────── */
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(26,143,191,0.2) transparent;
+}
+.panel-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(26,143,191,0.0);
+  border-radius: 99px;
+  transition: background 0.3s;
+}
+.panel-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(26,143,191,0.25);
+}
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(26,143,191,0.5);
+}
