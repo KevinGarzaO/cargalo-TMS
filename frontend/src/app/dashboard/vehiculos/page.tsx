@@ -6,6 +6,7 @@ import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, Car, Truck, 
 import { MOCK } from '@/utils/data';
 import DocumentModal from '@/components/DocumentModal';
 import { useSearchParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
 function StatusPill({ s }: { s: string }) {
   const map: Record<string, { label: string, colorClass: string }> = { 
@@ -392,15 +393,21 @@ function VehicleDetail({ vehicle, isCreate = false, onClose, onSave }: { vehicle
   );
 }
 
+
+const VehiculosContent = dynamic(() => Promise.resolve(VehiculosContentInternal), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Vehículos...</div>
+});
+
 export default function Vehiculos() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <VehiculosContent />
     </Suspense>
   );
 }
 
-function VehiculosContent() {
+function VehiculosContentInternal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');

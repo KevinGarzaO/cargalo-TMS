@@ -4,6 +4,7 @@ import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, Eye, Edit, MoreHorizontal, MapPin, Phone, User, Clock, Info, ExternalLink } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker } from '@react-google-maps/api';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB5aG1ur9_hOUAGmNwo9_TxUtpeFXMsiZM';
@@ -341,15 +342,21 @@ function PointDetail({ point, isCreate = false, onClose, onSave }: { point?: any
   );
 }
 
+
+const PuntosEntregaContent = dynamic(() => Promise.resolve(PuntosEntregaContentInternal), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Puntos de Entrega...</div>
+});
+
 export default function PuntosEntrega() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <PuntosEntregaContent />
     </Suspense>
   );
 }
 
-function PuntosEntregaContent() {
+function PuntosEntregaContentInternal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');

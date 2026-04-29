@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef, Suspense } from 'react';
 import { Download, Plus, Search, Filter, MapPin, Eye, Edit, MoreHorizontal, Mail, Phone, MessageSquare, UserMinus, UserPlus, FileText, Minus, User, Building, Clock, Map, Trash2, Maximize2 } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import DocumentModal from '@/components/DocumentModal';
 import ZoomableImage from '@/components/ZoomableImage';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
@@ -614,15 +615,21 @@ function ClienteDetail({ cliente, isCreate = false, defaultTipo, onClose, onSave
   );
 }
 
+
+const ClientesContent = dynamic(() => Promise.resolve(ClientesContentInternal), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Clientes...</div>
+});
+
 export default function Clientes() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <ClientesContent />
     </Suspense>
   );
 }
 
-function ClientesContent() {
+function ClientesContentInternal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const idParam = searchParams.get('id');
@@ -631,7 +638,7 @@ function ClientesContent() {
  
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
-  const [clientesData, setClientesData] = useState([...MOCK.CLIENTES].map(c => ({...c, tipo: c.tipo || 'B2B', puntosEntrega: []})));
+  const [clientesData, setClientesData] = useState([...(MOCK.CLIENTES || [])].map(c => ({...c, tipo: c.tipo || 'B2B', puntosEntrega: []})));
  
   const selected = useMemo(() => idParam ? clientesData.find(c => c.id === idParam) : null, [idParam, clientesData]);
   const filtered = useMemo(() => clientesData.filter(s => s.tipo === tipoParam && (filter === 'all' || s.estado === filter) && (!q || (s.name || s.nombre || '').toLowerCase().includes(q.toLowerCase()))), [q, filter, clientesData, tipoParam]);
@@ -679,10 +686,10 @@ function ClientesContent() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1A8FBF] to-[#4CB89C] flex items-center justify-center text-white font-bold text-[12px] shadow-sm shrink-0">
-                        {s.tipo === 'B2C' ? initials(s.name) : <Building size={18} />}
+                        {s.tipo === 'B2C' ? initials(s.name || s.nombre || '') : <Building size={18} />}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-bold text-[13px] group-hover:text-primary transition-colors truncate">{s.name}</div>
+                        <div className="font-bold text-[13px] group-hover:text-primary transition-colors truncate">{s.name || s.nombre || 'Sin nombre'}</div>
                         <div className="text-[10px] text-ink-400 font-mono tracking-tighter uppercase">{s.rfc || 'Sin RFC'}</div>
                       </div>
                     </div>
@@ -698,11 +705,11 @@ function ClientesContent() {
                   <td className="px-4 py-3">
                     <div className="flex flex-col">
                        <div className="text-[13px] font-semibold text-ink-900 flex items-center gap-1.5">
-                         {s.contactName}
+                         {s.contactName || s.contacto || 'Sin contacto'}
                        </div>
                        <div className="flex items-center gap-2 mt-0.5">
-                         <span className="text-[11px] text-ink-500 flex items-center gap-1"><Mail size={10} /> {s.contactEmail}</span>
-                         <span className="text-[11px] text-ink-500 flex items-center gap-1"><Phone size={10} /> {s.contactPhone}</span>
+                         <span className="text-[11px] text-ink-500 flex items-center gap-1"><Mail size={10} /> {s.contactEmail || 'N/A'}</span>
+                         <span className="text-[11px] text-ink-500 flex items-center gap-1"><Phone size={10} /> {s.contactPhone || 'N/A'}</span>
                        </div>
                     </div>
                   </td>

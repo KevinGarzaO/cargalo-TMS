@@ -4,6 +4,7 @@ import React, { useState, useMemo, Suspense } from 'react';
 import { Download, Plus, Search, Filter, MapPin, Eye, Edit, MoreHorizontal, Mail, Phone, User, Shield, Calendar, CreditCard, Truck, Star, Briefcase } from 'lucide-react';
 import { MOCK } from '@/utils/data';
 import { useSearchParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
 // --- HELPERS ---
 const initials = (name: string) => (name || '').split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
@@ -351,15 +352,21 @@ function DriverDetail({ driver, onClose }: { driver: any, onClose: () => void })
 
 // --- MAIN PAGE ---
 
+
+const DriversContent = dynamic(() => Promise.resolve(DriversContentInternal), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Conductores...</div>
+});
+
 export default function Drivers() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <DriversContent />
     </Suspense>
   );
 }
 
-function DriversContent() {
+function DriversContentInternal() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idParam = searchParams.get('id');

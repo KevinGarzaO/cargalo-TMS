@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Download, Plus, Search, Filter, Edit, MoreHorizontal, User, Shield, LifeBuoy, X, Mail, Settings, Calendar, Key, Phone, Map, Eye } from 'lucide-react';
 
@@ -228,15 +229,21 @@ function AdminDetail({ admin, isCreate = false, onClose, onSave }: { admin?: any
   );
 }
 
+
+const AdministradoresContent = dynamic(() => Promise.resolve(AdministradoresContentInternal), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando Administradores...</div>
+});
+
 export default function Administradores() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-full text-ink-400 font-bold uppercase text-xs tracking-widest">Iniciando...</div>}>
       <AdministradoresContent />
     </Suspense>
   );
 }
 
-function AdministradoresContent() {
+function AdministradoresContentInternal() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const actionParam = searchParams.get('action');
@@ -272,8 +279,10 @@ function AdministradoresContent() {
   const filtered = useMemo(() => {
     return admins.filter(a => {
       if (filter !== "all" && a.estado !== filter) return false;
-      if (q && !(a.nombre.toLowerCase().includes(q.toLowerCase()) ||
-                 a.email.toLowerCase().includes(q.toLowerCase()))) return false;
+      const name = (a.nombre || "").toLowerCase();
+      const email = (a.email || "").toLowerCase();
+      const search = (q || "").toLowerCase();
+      if (search && !(name.includes(search) || email.includes(search))) return false;
       return true;
     });
   }, [admins, q, filter]);
